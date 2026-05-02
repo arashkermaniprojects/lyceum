@@ -3612,6 +3612,46 @@ _MATH_CHARS_RE = re.compile(
 _FRAG_BOUNDARY_RE = re.compile(r"[.;]\s+|(?<=\?)\s+|(?<=\!)\s+|\n\s*\n+")
 
 
+# PyMuPDF renders the ``\sum`` / ``\prod`` / ``\int`` glyphs as
+# capital ``X`` (or ``Y`` / ``R``), with the upper bound on the line
+# above and the lower bound on the line below.  After single-newline
+# flattening the body_text reads ``... = − N X i=1 K X k=1 yik …`` —
+# the bounds (``N``, ``K``) and the glyph (``X``) are plain capitals
+# that ``_MATH_CHARS_RE`` does not recognise, so the math-cluster
+# detector breaks at ``=`` and the rest of the equation is dropped.
+# This pre-processor folds the vertical-stack representation back
+# into a one-line LaTeX form, so the cluster detector keeps reading
+# through the equation and ``to_latex`` produces a faithful
+# transcript.
+_PYMUPDF_SUM_GLYPHS = {
+    "X": r"\sum",     # capital sigma
+    "Y": r"\prod",    # capital pi (occasionally)
+    "R": r"\int",     # integral, when between bounds with ``d<var>``
+}
+
+# ``<upper> X <lower>`` where upper is a single capital letter or a
+# small number and lower is ``<var>=<expr>`` or ``<var>``.  The lower
+# bound is required to disambiguate prose like "set X" from a Σ glyph.
+_VSTACK_RE = re.compile(
+    r"\b([A-Z]|\d{1,3})\s+([XYR])\s+([a-zA-Z]\w*\s*=\s*[^\s,;]{1,12})"
+)
+
+
+def _repair_pymupdf_vstack(text: str) -> str:
+    """Fold PyMuPDF's vertical \\sum/\\prod/\\int glyph layout into
+    inline LaTeX so the math-fragment detector keeps reading through
+    a multi-line equation instead of stopping at the first plain-
+    capital bound."""
+    def _sub(m: "re.Match[str]") -> str:
+        upper, glyph, lower = m.group(1), m.group(2), m.group(3)
+        cmd = _PYMUPDF_SUM_GLYPHS.get(glyph, r"\sum")
+        return f"{cmd}_{{{lower}}}^{{{upper}}}"
+    # Run twice so nested ``N X i=1 K X k=1`` collapses fully.
+    out = _VSTACK_RE.sub(_sub, text)
+    out = _VSTACK_RE.sub(_sub, out)
+    return out
+
+
 _FUNC_CALL_RE = re.compile(
     # ``f(x)`` / ``L(y, f(x))`` / ``J(f)`` / ``\phi(x)`` / etc.
     # One letter (or LaTeX command) followed by balanced single-level
@@ -3644,6 +3684,10 @@ def _detect_math_fragments(text: str) -> list[tuple[str, int]]:
     # boundary regex already handles blank-line breaks, so paragraphs
     # don't fuse.
     text = re.sub(r"\n(?!\s*\n)", " ", text)
+    # Repair PyMuPDF's vertical-stack \sum/\prod/\int glyphs so the
+    # cluster detector reads through a multi-line equation instead
+    # of stopping at the first plain-capital bound.
+    text = _repair_pymupdf_vstack(text)
     for chunk in _FRAG_BOUNDARY_RE.split(text):
         idx = text.find(chunk, pos)
         if idx < 0:
@@ -3714,6 +3758,35 @@ def _detect_math_fragments(text: str) -> list[tuple[str, int]]:
                 continue
             lo = max(0, cluster[0] - 1)
             hi = min(len(token_spans), cluster[-1] + 2)
+            # When the cluster ends in a big-operator command (\sum,
+            # \prod, \int, \oint), extend the window forward to capture
+            # the integrand body — typical patterns are
+            # ``\sum_{...}^{...} f(x_i)`` or ``\sum yik log fk(xi),``,
+            # where the integrand sits 1–6 tokens past the operator.
+            # Without this, ``\sum_{i=1}^{N} \sum_{k=1}^{K} yik`` cuts
+            # off ``log fk(xi)`` and the captured LaTeX has no body.
+            if cluster:
+                last_tok = token_spans[cluster[-1]][2]
+                # ``\b`` doesn't fire after ``\sum`` because ``_`` is a
+                # word-char in regex — match by next-glyph instead.
+                if re.search(
+                    r"\\(?:sum|prod|int|oint|bigcup|bigcap)"
+                    r"(?:[_^\s\{\(]|$)",
+                    last_tok,
+                ):
+                    j = cluster[-1] + 1
+                    extended_to = j
+                    while j < len(token_spans) and j < cluster[-1] + 8:
+                        t = token_spans[j][2]
+                        # Stop at sentence-ending punctuation tokens.
+                        if t in {",", ";", ".", "(11.10)"} \
+                                or t.startswith("(") and t.rstrip(",").endswith(")") \
+                                and re.match(r"^\(\d+(?:\.\d+)?\)[,.;]?$", t):
+                            extended_to = j
+                            break
+                        extended_to = j + 1
+                        j += 1
+                    hi = max(hi, min(len(token_spans), extended_to))
             win_tokens = token_spans[lo:hi]
             while win_tokens and _is_prose_token(win_tokens[0][2]):
                 win_tokens.pop(0)
@@ -3722,7 +3795,10 @@ def _detect_math_fragments(text: str) -> list[tuple[str, int]]:
             if not win_tokens:
                 continue
             fragment = " ".join(t for _s, _e, t in win_tokens).rstrip(",;:.")
-            if len(fragment) < 3 or len(fragment) > 100:
+            # Multi-sum / multi-integral equations easily run past 100
+            # characters once the integrand body is included; the upper
+            # cap exists to reject prose runs, not real equations.
+            if len(fragment) < 3 or len(fragment) > 220:
                 continue
             if not _MATH_CHARS_RE.search(fragment):
                 continue
@@ -3785,8 +3861,29 @@ def _looks_like_pseudocode(fragment: str) -> bool:
     # function-arg subscripts in math (``L(yi, f(xi))`` is math, not
     # prose, even though ``yi`` / ``xi`` look like word tokens).
     outside = re.sub(r"\([^()]*(?:\([^()]*\)[^()]*)*\)", "", fragment)
+    # LaTeX commands (``\sum``, ``\log``, ``\theta`` …) are math, not
+    # prose — strip them before the prose-word count.  Without this,
+    # a multi-sum equation like ``R(θ) = − \sum_{i=1}^{N} \sum_{k=1}^{K}
+    # yik log fk`` was rejected because ``sum``, ``log``, ``yik`` got
+    # counted as prose words.
+    outside = re.sub(r"\\[A-Za-z]+", "", outside)
+    # Math operator names that PyMuPDF emits unescaped — also drop
+    # before counting.  These appear inside formulas, not in algorithm
+    # prose.
+    outside = re.sub(
+        r"\b(?:log|ln|exp|sin|cos|tan|cot|sec|csc|min|max|arg|argmax|"
+        r"argmin|sup|inf|lim|det|tr|diag|var|cov|rank|sgn|sign)\b",
+        "", outside,
+    )
     word_tokens = re.findall(r"[A-Za-z]{2,}", outside)
-    if len(word_tokens) >= 2:
+    # A fragment with a clear math backbone (``\sum``/``\prod``/``\int``
+    # or ``=``) is allowed up to two stray word-like tokens, which lets
+    # short labels like ``yik`` or ``Var`` ride alongside the formula.
+    has_strong_math = bool(re.search(
+        r"\\(?:sum|prod|int|partial|nabla|frac)\b|=", fragment
+    ))
+    word_cap = 2 if has_strong_math else 1
+    if len(word_tokens) > word_cap:
         return True
     for w in word_tokens:
         if w.lower() in _PSEUDOCODE_WORDS:

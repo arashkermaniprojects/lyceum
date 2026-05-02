@@ -30,6 +30,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import sys
 import time
 import urllib.request
@@ -124,16 +125,30 @@ matters:
    list that does not appear by its spelled-out label in your prose
    is a hard failure of the task.
 
-4. NO RAW LATEX.  Variables get spoken names ("the smoothing parameter
-   lambda" not "λ", "the sum from i equals 1 to N" not "Σᵢ").  Citation
-   labels are spelled out ("equation five point nine", not "(5.9)").
+4. FIGURES MUST ALSO BE NAMED BY LABEL.  When the chapter has cited
+   figures, every figure label in the figures list I give you MUST
+   appear in the section's prose by its spelled-out citation
+   ("figure five point one", "figure eleven point two") together with
+   one short clause saying what the figure shows.  Concrete pattern:
+   "<intuition>; figure eleven point two shows <one-line description
+   of what's drawn>."  Place the figure-mention clause inside the
+   prose of the section that owns the figure (the figure list tells
+   you which nid each figure belongs to).  FAILURE STATE: a figure in
+   the input list that does not appear by its spelled-out label in
+   the prose of its owning section is a hard failure of the task.
 
-5. HONOR THE STRUCTURE.  Output a JSON map ``{"paragraphs": {nid: text,
-   ...}, "covered_equations": [labels...]}`` where every input section's
-   nid appears as a key, and ``covered_equations`` lists every equation
-   label you actually mentioned in the prose (not just the ones I gave
-   you).  Each paragraph is 3-6 sentences; longer when the section owns
-   many cited equations, since each equation needs its own clause."""
+5. NO RAW LATEX.  Variables get spoken names ("the smoothing parameter
+   lambda" not "λ", "the sum from i equals 1 to N" not "Σᵢ").  Citation
+   labels are spelled out ("equation five point nine", not "(5.9)";
+   "figure five point three", not "Fig. 5.3").
+
+6. HONOR THE STRUCTURE.  Output a JSON map
+   ``{"paragraphs": {nid: text, ...}, "covered_equations": [labels...],
+   "covered_figures": [labels...]}`` where every input section's nid
+   appears as a key, and the two ``covered_*`` lists name every
+   equation / figure label you actually mentioned in the prose (not
+   just the ones I gave you).  Each paragraph is 3-6 sentences;
+   longer when the section owns many cited equations or figures."""
 
 
 def _call_llm(system: str, user: str, *,
@@ -368,6 +383,44 @@ def _walk(node, *, depth, max_depth,
     )
 
 
+def _collect_chapter_figures(chapter_root_nid: str,
+                              figures_index: dict) -> list[dict]:
+    """Every cited figure under the chapter, as
+    ``[{"label": "Figure 11.2", "home_nid": "b/ch11/s11_3",
+        "caption": "Schematic ..."}, ...]`` deduped on label and
+    ordered by numeric label suffix.  The story builder walks this
+    list and the LLM is required to name each label in the prose of
+    its owning section."""
+    out: list[dict] = []
+    seen: set[str] = set()
+    if not figures_index or not chapter_root_nid:
+        return out
+    by_nid = figures_index.get("by_nid", {}) or {}
+    prefix = chapter_root_nid + "/"
+    for home, entries in by_nid.items():
+        if home != chapter_root_nid and not home.startswith(prefix):
+            continue
+        for entry in (entries or []):
+            label = (entry.get("label") or "").strip()
+            if not label or label in seen:
+                continue
+            seen.add(label)
+            cap = (entry.get("caption") or "").strip().replace("\n", " ")
+            cap = re.sub(r"\s+", " ", cap)[:160]
+            out.append({
+                "label": label,
+                "home_nid": home,
+                "caption": cap,
+            })
+    def _sort_key(e):
+        m = re.search(r"(\d+)(?:\.(\d+))?", e["label"])
+        if not m:
+            return (0, 0)
+        return (int(m.group(1)), int(m.group(2) or 0))
+    out.sort(key=_sort_key)
+    return out
+
+
 def _collect_chapter_equations(chapter_root_nid: str,
                                 math_graph) -> list[dict]:
     """Every cited equation under the chapter, as
@@ -407,6 +460,7 @@ def _collect_chapter_equations(chapter_root_nid: str,
 
 
 def _build_chapter_story(tree, *, math_graph,
+                          figures_index: dict,
                           existing_paragraphs: dict) -> tuple[dict, list[str]]:
     """Single big LLM call that produces the whole-chapter narrative.
 
@@ -431,6 +485,7 @@ def _build_chapter_story(tree, *, math_graph,
     _walk(tree)
 
     eqs = _collect_chapter_equations(tree.nid, math_graph)
+    figs = _collect_chapter_figures(tree.nid, figures_index)
 
     # Skip the call entirely when every section already has a cached
     # paragraph — keeps re-builds cheap.
@@ -458,6 +513,20 @@ def _build_chapter_story(tree, *, math_graph,
                       else e["latex"]
         eq_lines.append(f"  {e['label']}: {latex_short}")
 
+    fig_lines = []
+    for f in figs:
+        cap = f["caption"] or "(no caption)"
+        fig_lines.append(
+            f"  {f['label']}  (owns: {f['home_nid']}): {cap}"
+        )
+    fig_block = ""
+    if fig_lines:
+        fig_block = (
+            "\n\nCITED FIGURES (every one must be named in the prose of "
+            "its owning section, with one short clause saying what the "
+            "figure shows):\n" + "\n".join(fig_lines)
+        )
+
     user_prompt = (
         f"CHAPTER: {tree.title}\n\n"
         f"PUNCH-LINE TO HONOR THROUGHOUT:\n  {tree.gist}\n\n"
@@ -465,10 +534,11 @@ def _build_chapter_story(tree, *, math_graph,
         f"in your output):\n" + "\n".join(section_lines) + "\n\n"
         f"CITED EQUATIONS (every one of these must be named in the prose, "
         f"with its meaning explained in plain English right there):\n"
-        + "\n".join(eq_lines) + "\n\n"
+        + "\n".join(eq_lines) + fig_block + "\n\n"
         f"Write the whole-chapter essay as JSON: "
         f'{{"paragraphs": {{"<nid>": "..."}}, '
-        f'"covered_equations": ["Equation N.M", ...]}}.'
+        f'"covered_equations": ["Equation N.M", ...], '
+        f'"covered_figures": ["Figure N.M", ...]}}.'
     )
     # The vLLM context for Qwen2.5-14B-AWQ is 8192.  The system prompt
     # is ~600 tokens, the user prompt with all cited equations + section
@@ -532,15 +602,26 @@ def _build_chapter_story(tree, *, math_graph,
         if isinstance(txt, str) and txt.strip():
             merged[nid] = _clean(txt.strip())
 
-    covered = set((out.get("covered_equations") or []))
-    expected = {e["label"] for e in eqs}
-    missing = sorted(expected - covered)
-    if missing:
-        print(f"  [chapter-story] LLM did not reference {len(missing)} "
-              f"of {len(expected)} cited equations: "
-              f"{', '.join(missing[:8])}{'…' if len(missing) > 8 else ''}",
+    covered_eq = set((out.get("covered_equations") or []))
+    expected_eq = {e["label"] for e in eqs}
+    missing_eq = sorted(expected_eq - covered_eq)
+    if missing_eq:
+        print(f"  [chapter-story] LLM did not reference {len(missing_eq)} "
+              f"of {len(expected_eq)} cited equations: "
+              f"{', '.join(missing_eq[:8])}"
+              f"{'…' if len(missing_eq) > 8 else ''}",
               flush=True)
-    return merged, missing
+
+    covered_fig = set((out.get("covered_figures") or []))
+    expected_fig = {f["label"] for f in figs}
+    missing_fig = sorted(expected_fig - covered_fig)
+    if missing_fig:
+        print(f"  [chapter-story] LLM did not reference {len(missing_fig)} "
+              f"of {len(expected_fig)} cited figures: "
+              f"{', '.join(missing_fig[:8])}"
+              f"{'…' if len(missing_fig) > 8 else ''}",
+              flush=True)
+    return merged, missing_eq
 
 
 def _flatten_existing_paragraphs(loaded: dict) -> dict:
@@ -605,7 +686,26 @@ def build(book_path: str, root_nid: str, out_path: str, *,
         concepts = json.load(open(concepts_path))
         n = len(concepts.get("by_home_nid", {}))
         print(f"[chapter-map] loaded concepts.json: {n} entries", flush=True)
+    # Figures sidecar (optional but enables figure-mention enforcement
+    # in the chapter-wide narrative).
+    figures_index: dict = {}
+    fig_stem, _ = os.path.splitext(book_path)
+    fig_path = fig_stem + ".figures.json"
+    if os.path.isfile(fig_path):
+        try:
+            figures_index = json.load(open(fig_path))
+            n_nids = len(figures_index.get("by_nid", {}) or {})
+            print(f"[chapter-map] loaded figures.json: "
+                  f"{n_nids} owning sections", flush=True)
+        except Exception as e:
+            print(f"[chapter-map] figures.json load failed: {e}",
+                  flush=True)
+            figures_index = {}
     else:
+        print(f"[chapter-map] no figures.json at {fig_path} — "
+              "story_paragraphs will not enforce figure mentions",
+              flush=True)
+    if not concepts:
         print(f"[chapter-map] no concepts.json at {concepts_path} — "
               "gists will be empty (fix: build_concept_layer first)",
               flush=True)
@@ -657,6 +757,7 @@ def build(book_path: str, root_nid: str, out_path: str, *,
     paragraphs, missing = _build_chapter_story(
         tree,
         math_graph=math_graph,
+        figures_index=figures_index,
         existing_paragraphs=existing_paragraphs,
     )
     _attach_paragraphs(tree, paragraphs)

@@ -56,6 +56,7 @@ from sevim.math_graph_phase1 import enrich_clause
 from serve.orchestrator import (
     _detect_math_fragments, _equation_citations_in,
     _verbalized_formula_keys, _normalize_formula_key,
+    _repair_pymupdf_vstack,
 )
 from serve.refcontent import to_latex
 
@@ -226,6 +227,14 @@ def build(book_path: str, *, verbose: bool = True) -> str:
 
     for node in _walk_nodes(book):
         body = _clean_body_for_outline(node.body_text or "")
+        # Fold PyMuPDF's vertical-stack \sum/\prod/\int glyphs into
+        # inline LaTeX BEFORE sentence-splitting, so equations spanning
+        # multiple physical lines survive as one sentence and reach
+        # ``_detect_math_fragments`` whole.  Also collapse single
+        # newlines so an equation broken across lines isn't split into
+        # one-token "sentences" by the sentence splitter.
+        body = re.sub(r"\n(?!\s*\n)", " ", body)
+        body = _repair_pymupdf_vstack(body)
         if len(body) < 12:
             continue
         n_nodes += 1
@@ -247,6 +256,14 @@ def build(book_path: str, *, verbose: bool = True) -> str:
     seq = 0
     for node in _walk_nodes(book):
         body = _clean_body_for_outline(node.body_text or "")
+        # Fold PyMuPDF's vertical-stack \sum/\prod/\int glyphs into
+        # inline LaTeX BEFORE sentence-splitting, so equations spanning
+        # multiple physical lines survive as one sentence and reach
+        # ``_detect_math_fragments`` whole.  Also collapse single
+        # newlines so an equation broken across lines isn't split into
+        # one-token "sentences" by the sentence splitter.
+        body = re.sub(r"\n(?!\s*\n)", " ", body)
+        body = _repair_pymupdf_vstack(body)
         if len(body) < 12:
             continue
         for _ in _split_sentences(body):
