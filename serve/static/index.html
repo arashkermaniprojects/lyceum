@@ -1110,7 +1110,23 @@
                shapes: state.shapesByPanel.tangent,
                order: state.orderByPanel.tangent };
     }
-    return { svg: board, w: 1300, h: 900, cursorKey: "main",
+    // Main panel: in chapter-zoom mode the board column is bounded
+    // by the right-side figures panel, so the SVG must shrink to
+    // match — otherwise the chapter_map renders at 1300 px and the
+    // right panel paints on top of its right edge.  Outside
+    // chapter-zoom we keep the 1300 default so cards still get
+    // breathing room before growBoardToFit kicks in.
+    let w = 1300;
+    try {
+      const layoutEl = document.querySelector("main");
+      if (layoutEl && layoutEl.classList.contains("with-chapter-viz")) {
+        const wrap = document.getElementById("board-wrap");
+        if (wrap && wrap.clientWidth) {
+          w = Math.max(720, wrap.clientWidth - 32);
+        }
+      }
+    } catch (_) {}
+    return { svg: board, w, h: 900, cursorKey: "main",
              shapes: state.shapesByPanel.main,
              order: state.orderByPanel.main };
   }
@@ -5150,8 +5166,14 @@
       g.addEventListener("click", () => {
         addLog("map → narrate", `Chapter ${n.number}: ${n.title}`);
         closeMap();
+        // Predict the chapter-zoom board width (see narrateNode for
+        // the same calculation).
+        const _vw2 = window.innerWidth;
+        const _rightW2 = Math.max(380, Math.round(_vw2 * 0.28));
+        const _canvasW2 = Math.max(720, _vw2 - 280 - _rightW2 - 32);
         postJSON("/api/narrate_node", {
           nid: n.nid, max_content: +maxInput.value, detail_level: (document.getElementById("detail-level")||{}).value || "L1_story" || 8,
+          canvas_w: _canvasW2,
         }).then(({plan_id, error}) => {
           if (error) { addLog("narrate_node error", error); return; }
           startStream(plan_id, `Chapter ${n.number}: ${n.title}`);
@@ -5229,8 +5251,18 @@
     // Reset the board for narration.
     clearBoardEl();
     board.setAttribute("viewBox", "0 0 1280 720");
+    // Predict the chapter-zoom board width so the server-rendered
+    // chapter_map SVG fits inside the middle column.  Layout in
+    // chapter-zoom mode is `280px | 1fr | minmax(380px, 28vw)`; the
+    // middle column gets viewport - TOC - right panel - board padding.
+    // Floor at 720 to match render_chapter_map's lower bound.
+    const _vw = window.innerWidth;
+    const _tocW = 280, _bpad = 32;
+    const _rightW = Math.max(380, Math.round(_vw * 0.28));
+    const _canvasW = Math.max(720, _vw - _tocW - _rightW - _bpad);
     postJSON("/api/narrate_node", {
       nid, max_content: +maxInput.value, detail_level: (document.getElementById("detail-level")||{}).value || "L1_story" || 8,
+      canvas_w: _canvasW,
     }).then(({plan_id, error}) => {
       if (error) { addLog("narrate_node error", error); return; }
       startStream(plan_id, "node " + nid);

@@ -171,9 +171,29 @@ def cap_board_with_cards(out: Path, topic: str, wait_s: float) -> None:
             browser.close()
 
 
+def cap_baseline(out: Path) -> None:
+    """Idle home page — useful to see what the tree-style chapter
+    viewer / TOC looks like before any narration starts.
+    """
+    print(f'[baseline] capturing -> {out.name}')
+    with sync_playwright() as pw:
+        browser, ctx, page = _make_page(pw)
+        try:
+            # Click the book to expand its chapter list in the TOC.
+            try:
+                page.locator('.toc-node').first.click()
+                page.wait_for_timeout(400)
+            except Exception:
+                pass
+            page.screenshot(path=str(out), full_page=False)
+        finally:
+            browser.close()
+
+
 def main() -> int:
     FIG_DIR.mkdir(parents=True, exist_ok=True)
     targets = [
+        ('baseline',      lambda: cap_baseline(FIG_DIR / 'fig_baseline.png')),
         ('voice_input',   lambda: cap_voice_input(FIG_DIR / 'fig_voice_input.png')),
         ('chapter_zoom',  lambda: cap_chapter_zoom(FIG_DIR / 'fig_chapter_zoom_shot.png')),
         ('reference',     lambda: cap_board_with_cards(
