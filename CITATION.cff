@@ -1,0 +1,35 @@
+cff-version: 1.2.0
+message: "If you use SeVim in your research, please cite the paper below."
+title: "SeVim: Deterministic Semantic-to-Visual Mapping for Educational Diagrams"
+authors:
+  - family-names: "Kermani Kolankeh"
+    given-names: "Arash"
+    affiliation: "School of Engineering, Applied Science, and Technology (SEAST), Canadian University Dubai"
+    email: arash.kolankeh@cud.ac.ae
+version: "0.1.0"
+repository-code: "https://github.com/arashkermaniprojects/sevim"
+license: CC-BY-NC-4.0
+type: software
+abstract: >
+  SeVim is a five-stage neuro-symbolic pipeline that converts natural-language
+  educational text into deterministic, byte-reproducible SVG diagrams without
+  hallucination and without external API calls. It combines a rule-based
+  semantic triple extractor, a frozen Qwen2.5-7B encoder, and a deterministic
+  Sugiyama layout engine.
+keywords:
+  - knowledge graph
+  - SVG generation
+  - educational technology
+  - neuro-symbolic
+  - deterministic layout
+  - information visualization
+preferred-citation:
+  type: article
+  title: "SeVim: Deterministic Semantic-to-Visual Mapping for Educational Diagrams"
+  authors:
+    - family-names: "Kermani Kolankeh"
+      given-names: "Arash"
+  journal: "IEEE Transactions on Pattern Analysis and Machine Intelligence"
+  status: "under review"
+  year: 2026
+  url: "https://github.com/arashkermaniprojects/sevim"

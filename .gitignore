@@ -1,0 +1,57 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.egg
+dist/
+build/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Test / benchmark outputs
+out.svg
+out.ir.json
+out.trace.json
+*.svg
+*.pdf
+*.log
+
+# Jupyter
+.ipynb_checkpoints/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+
+# Local Claude settings (project-specific, not for repo)
+.claude/
+
+# The paper lives in its own repo
+# (arashkermaniprojects/narrated-visualisation-of-mathematical-textbooks);
+# don't track its working copy here.
+paper/
+
+# Books directory holds copyrighted PDFs (Sipser, ESLII, …) plus
+# their generated sidecars and rendered figures.  Source PDFs are
+# never to be redistributed; the sidecars are also too large for
+# the repo.  Re-run ``tools/extract_book_figures``,
+# ``tools/build_chapter_map``, etc. locally to rebuild them from
+# your own copy of the book.
+books/
+
+# Local persisted session snapshots — per-user state, never share.
+.sevim/
+
+# Old paper drafts (LaTeX intermediates etc.) — superseded by the
+# paper repo.
+old/
+
+# Pytest cache.
+.pytest_cache/
