@@ -704,9 +704,29 @@ class _Handler(BaseHTTPRequestHandler):
         if not target:
             return self._json({"nid": nid, "figures": []})
         segs = [s for s in target.split("/") if s]
-        # Use the first 3 segments (or fewer if the nid is shorter)
-        # — covers both the ``b/ch5`` and ``b/p1/s_ch_1_*`` shapes.
-        chapter_prefix = "/".join(segs[: min(3, len(segs))])
+        # Compute the chapter ancestor by walking segments until we
+        # hit one that names a chapter.  Heuristic: a chapter segment
+        # contains the substring ``ch`` AND at least one digit
+        # (matches ``ch5`` for ESLII, ``s_ch_1_regular_languages`` for
+        # Sipser part-wrapped chapters, and ``ch_ch_0_introduction``
+        # for Sipser front-matter chapters).  Without this, descending
+        # into a section like ``b/ch5/s5_1`` produced a chapter_prefix
+        # of ``b/ch5/s5_1`` itself, narrowing the figure filter past
+        # the chapter level — every ESLII figure's home_nid is at
+        # section level (``b/ch5/s5_2`` etc.), so the per-cell narration
+        # never matched anything.
+        def _is_chapter_seg(s: str) -> bool:
+            sl = s.lower()
+            return "ch" in sl and any(c.isdigit() for c in sl)
+        if not segs:
+            chapter_prefix = ""
+        else:
+            taken = [segs[0]]
+            for s in segs[1:]:
+                taken.append(s)
+                if _is_chapter_seg(s):
+                    break
+            chapter_prefix = "/".join(taken)
 
         def _is_related(home: str) -> bool:
             if not home:
