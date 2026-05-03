@@ -28,6 +28,7 @@ for downstream JavaScript interactivity (I4 — bidirectional provenance).
 """
 from __future__ import annotations
 
+import re
 from xml.sax.saxutils import escape
 
 from .ir import MATH_PRIMITIVES, PlacedConn, PlacedGraph, PlacedShape
@@ -35,6 +36,273 @@ from .equation import has_structured_constructs, render_equation
 from .math_lex import latex_to_unicode
 
 PALETTE = ["#2196F3", "#FF9800", "#4CAF50", "#9C27B0", "#F44336"]
+
+# ---------------------------------------------------------------------------
+# Label → KaTeX repair
+# ---------------------------------------------------------------------------
+# `tools/build_sevim_diagrams.py` typesets node labels at build time —
+# Greek words become Unicode glyphs ("alpha" → "α") and ``x_m`` →
+# ``xₘ``.  But the LLM (or PyMuPDF-extracted prose feeding the LLM)
+# regularly emits subscripts WITHOUT an explicit underscore, so glyphs
+# arrive glued: ``α0m`` (= α₀ₘ), ``Zm`` (= Zₘ), ``αTmX`` (= α_m^T X).
+# These then render as raw Unicode in SVG ``<text>`` and the user
+# sees ``"bias term α0m"`` instead of typeset math.
+#
+# Strategy used by `_label_to_math_html`:
+#   1. Detect glued sub/transpose patterns and rewrite them into LaTeX
+#      with proper ``_{...}`` / ``^{T}`` braces.
+#   2. Convert Greek + math glyphs back into LaTeX commands so KaTeX
+#      can typeset them.
+#   3. Wrap the math fragment in ``\(...\)`` so the frontend's
+#      ``runMathAutoRender`` (which already handles ``.math-prose``
+#      blocks for reference cards) compiles it inline with prose.
+
+# Greek lowercase Unicode glyphs we typeset back into LaTeX commands.
+_GREEK_UNI_TO_LATEX: dict[str, str] = {
+    "α": r"\alpha", "β": r"\beta", "γ": r"\gamma", "δ": r"\delta",
+    "ε": r"\varepsilon", "ζ": r"\zeta", "η": r"\eta", "θ": r"\theta",
+    "ι": r"\iota", "κ": r"\kappa", "λ": r"\lambda", "μ": r"\mu",
+    "ν": r"\nu", "ξ": r"\xi", "π": r"\pi", "ρ": r"\rho",
+    "σ": r"\sigma", "τ": r"\tau", "υ": r"\upsilon", "φ": r"\varphi",
+    "χ": r"\chi", "ψ": r"\psi", "ω": r"\omega",
+    "Γ": r"\Gamma", "Δ": r"\Delta", "Θ": r"\Theta", "Λ": r"\Lambda",
+    "Ξ": r"\Xi", "Π": r"\Pi", "Σ": r"\Sigma", "Υ": r"\Upsilon",
+    "Φ": r"\Phi", "Ψ": r"\Psi", "Ω": r"\Omega",
+}
+
+# Unicode subscript/superscript reverse map for the cases where
+# `_typeset` already collapsed the underscore-form into the glyph.
+_SUB_UNI_TO_CHAR: dict[str, str] = {
+    "₀": "0", "₁": "1", "₂": "2", "₃": "3", "₄": "4",
+    "₅": "5", "₆": "6", "₇": "7", "₈": "8", "₉": "9",
+    "ₐ": "a", "ₑ": "e", "ₕ": "h", "ᵢ": "i", "ⱼ": "j", "ₖ": "k",
+    "ₗ": "l", "ₘ": "m", "ₙ": "n", "ₒ": "o", "ₚ": "p", "ᵣ": "r",
+    "ₛ": "s", "ₜ": "t", "ᵤ": "u", "ᵥ": "v", "ₓ": "x",
+    "₊": "+", "₋": "-", "₌": "=",
+}
+_SUP_UNI_TO_CHAR: dict[str, str] = {
+    "⁰": "0", "¹": "1", "²": "2", "³": "3", "⁴": "4",
+    "⁵": "5", "⁶": "6", "⁷": "7", "⁸": "8", "⁹": "9",
+    "⁺": "+", "⁻": "-", "ⁿ": "n",
+    # Modifier-Letter Capital block — used for transpose ``ᵀ`` and
+    # other one-letter superscripts that show up in typeset labels.
+    "ᵀ": "T", "ᴬ": "A", "ᴮ": "B", "ᴰ": "D", "ᴱ": "E",
+    "ᴳ": "G", "ᴴ": "H", "ᴵ": "I", "ᴶ": "J", "ᴷ": "K",
+    "ᴸ": "L", "ᴹ": "M", "ᴺ": "N", "ᴼ": "O", "ᴾ": "P",
+    "ᴿ": "R", "ᵁ": "U", "ⱽ": "V", "ᵂ": "W",
+}
+
+_GREEK_CHARS = "".join(_GREEK_UNI_TO_LATEX)
+_SUB_CHARS = "".join(_SUB_UNI_TO_CHAR)
+_SUP_CHARS = "".join(_SUP_UNI_TO_CHAR)
+
+# Math-bearing characters: any glyph that signals "this is math, not prose".
+# We DON'T include arithmetic operators ``+``/``-``/``/``/``*`` here
+# because ``-`` appears in English ordinals (``m-th``) and would
+# false-trigger.  ``=`` is included because it never appears in plain
+# prose.
+_MATH_HINT_RE = re.compile(
+    rf"[{_GREEK_CHARS}{_SUB_CHARS}{_SUP_CHARS}=\^]"
+    r"|[A-Za-z]_[A-Za-z0-9]"
+    r"|\\[A-Za-z]"
+)
+
+# Tokens we treat as PART of a math run when they sit between two
+# math-bearing tokens (so ``α0m + αTmX`` is one run, not two).
+# Pure-prose fillers (``of``, ``the``…) DON'T extend the run.
+_MATH_GLUE_RE = re.compile(r"^[+\-*/(),.|·×÷]+$")
+
+# Operator names that look like glued ``head + tail`` but must not be
+# subscripted (mirrors `serve.refcontent.to_latex`).
+_OP_NAMES = {
+    "log", "ln", "exp", "sin", "cos", "tan", "cot", "sec", "csc",
+    "min", "max", "arg", "sup", "inf", "lim", "det", "tr", "diag",
+    "var", "cov", "rank", "sgn", "sign", "mod",
+}
+# Short prose words that MAY look like glued sub patterns but are not.
+# Lowercased.  Padded with the ones we observed misfire on real labels
+# ("the m-th" → "th" got subscripted previously).
+_PROSE_GLUE = {
+    "is", "in", "on", "at", "to", "of", "an", "or", "no", "be",
+    "as", "by", "we", "us", "my", "if", "do", "go", "so", "it",
+    "th", "st", "nd", "rd",  # ordinals
+    "the", "and", "for", "all", "any", "are", "can", "has", "had",
+    "her", "his", "let", "may", "not", "now", "off", "one", "our",
+    "out", "say", "see", "set", "she", "two", "who", "why", "you",
+}
+
+
+def _looks_like_math(label: str) -> bool:
+    """Return True when *label* contains any math-typography hint."""
+    if not label:
+        return False
+    return bool(_MATH_HINT_RE.search(label))
+
+
+def _label_to_latex(label: str) -> str:
+    """Convert a SeVim label string into KaTeX-renderable LaTeX source.
+
+    Repairs the common PyMuPDF / LLM artefacts:
+      * ``α0m``  → ``\\alpha_{0m}``
+      * ``Zm``   → ``Z_{m}``
+      * ``αTmX`` → ``\\alpha_{m}^{T} X``   (transpose-with-subscript)
+      * Unicode subscript/superscript glyphs → ``_{…}`` / ``^{…}``
+
+    Conservative: only applies the joining rules to tokens that don't
+    look like English short words (see ``_PROSE_GLUE``) so labels like
+    ``"output of the m-th"`` survive unchanged.
+    """
+    if not label:
+        return ""
+    s = label
+
+    # Step 1 — Unicode sub/sup runs back into LaTeX braces.  Process
+    # superscripts first then subscripts.  Run-collapsed: ``Z₂ ₃`` →
+    # ``Z_{2 3}`` would be wrong, so each run goes into its own group.
+    def _sup_run(m: "re.Match[str]") -> str:
+        run = "".join(_SUP_UNI_TO_CHAR[c] for c in m.group(0))
+        return f"^{{{run}}}"
+
+    def _sub_run(m: "re.Match[str]") -> str:
+        run = "".join(_SUB_UNI_TO_CHAR[c] for c in m.group(0))
+        return f"_{{{run}}}"
+
+    s = re.sub(rf"[{_SUP_CHARS}]+", _sup_run, s)
+    s = re.sub(rf"[{_SUB_CHARS}]+", _sub_run, s)
+
+    # Step 2 — Greek glyphs → LaTeX command + space (so the next
+    # repair pass can spot ``\alpha 0m`` style joins).
+    s = re.sub(
+        rf"[{_GREEK_CHARS}]",
+        lambda m: _GREEK_UNI_TO_LATEX[m.group(0)] + " ",
+        s,
+    )
+
+    # Step 3 — transpose-with-subscript joined: ``\alpha TmX`` → ``\alpha_{m}^{T} X``.
+    # Pattern: ``\command`` + space + uppercase ``T`` + lowercase index +
+    # uppercase letter (the operand the transposed object multiplies).
+    # The classic shape that PyMuPDF produces for ``\alpha_m^T X``.
+    def _join_transpose(m: "re.Match[str]") -> str:
+        head, sub, var = m.group(1), m.group(2), m.group(3)
+        return f"{head}_{{{sub}}}^{{T}} {var}"
+
+    s = re.sub(
+        r"(\\[A-Za-z]+)\s+T([a-z])([A-Z])(?![A-Za-z])",
+        _join_transpose, s,
+    )
+    # ASCII head version (no LaTeX command): ``ZT mX`` etc.  Rare but
+    # symmetrical with the above.
+    s = re.sub(
+        r"(?<![A-Za-z\\])([A-Z])T([a-z])([A-Z])(?![A-Za-z])",
+        _join_transpose, s,
+    )
+
+    # Step 4 — bare glued subscripts on a LaTeX-command head:
+    # ``\alpha 0m`` → ``\alpha_{0m}``.  Require the tail to start with
+    # a digit so we don't break ``\alpha x`` (two distinct variables).
+    s = re.sub(
+        r"(\\[A-Za-z]+)\s+(\d[0-9a-z]{0,2})(?![A-Za-z])",
+        lambda m: f"{m.group(1)}_{{{m.group(2)}}}",
+        s,
+    )
+
+    # Step 5 — bare glued subscripts on an ASCII-letter head: ``Zm`` →
+    # ``Z_{m}``.  Single-letter head, 1-2 lowercase-letter or 1-3 digit
+    # tail, no whitespace, no preceding letter or backslash.  Skips
+    # operator names (``log``, ``min``…) and short English words.
+    def _join_sub_ascii(m: "re.Match[str]") -> str:
+        head, sub = m.group(1), m.group(2)
+        whole = (head + sub).lower()
+        if whole in _OP_NAMES:
+            return "\\" + whole
+        if whole in _PROSE_GLUE:
+            return m.group(0)
+        return f"{head}_{{{sub}}}"
+
+    s = re.sub(
+        r"(?<![A-Za-z\\])([A-Za-z])([a-z]{1,2}|\d{1,3})(?![A-Za-z])",
+        _join_sub_ascii, s,
+    )
+
+    # Step 6 — collapse double whitespace introduced by the Greek pass.
+    s = re.sub(r" {2,}", " ", s).strip()
+    return s
+
+
+def _label_to_math_html(label: str) -> tuple[str, bool]:
+    """Return ``(html, has_math)`` for *label*.
+
+    When *label* mixes prose and math (e.g. ``"bias term α0m"``), the
+    math-bearing tokens are wrapped in ``\\(...\\)`` delimiters with
+    LaTeX-converted bodies; the prose tokens stay as plain text.
+
+    When *label* is all prose, returns ``(escape(label), False)`` so
+    the caller can keep the existing flat ``<text>`` SVG path.
+
+    The token classification splits on whitespace and tags each token
+    as MATH (carries a math hint), GLUE (math operators / parens that
+    don't count alone but glue adjacent math tokens), or PROSE.  Then
+    consecutive MATH/GLUE runs collapse into one ``\\(...\\)`` block.
+    """
+    if not _looks_like_math(label):
+        return escape(label), False
+
+    # Tokenise on whitespace, preserving the leading whitespace before
+    # each token so we can reconstruct the original spacing.
+    tokens: list[tuple[str, str, str]] = []  # (kind, leading_ws, body)
+    pos = 0
+    for m in re.finditer(r"\S+", label):
+        ws = label[pos:m.start()]
+        body = m.group(0)
+        if _MATH_HINT_RE.search(body):
+            kind = "math"
+        elif _MATH_GLUE_RE.match(body):
+            kind = "glue"
+        else:
+            kind = "prose"
+        tokens.append((kind, ws, body))
+        pos = m.end()
+    trailing_ws = label[pos:]
+
+    # Sweep: any GLUE token wedged between two MATH tokens is promoted
+    # to MATH.  This keeps ``α0m + αTmX`` as a single run.
+    for i, (kind, ws, body) in enumerate(tokens):
+        if kind != "glue":
+            continue
+        prev_math = i > 0 and tokens[i - 1][0] == "math"
+        next_math = i + 1 < len(tokens) and tokens[i + 1][0] == "math"
+        if prev_math and next_math:
+            tokens[i] = ("math", ws, body)
+
+    # Emit: collapse consecutive math tokens into one ``\(...\)`` block.
+    parts: list[str] = []
+    i = 0
+    while i < len(tokens):
+        kind, ws, body = tokens[i]
+        if kind == "math":
+            # Greedy run.
+            run = [(ws, body)]
+            j = i + 1
+            while j < len(tokens) and tokens[j][0] == "math":
+                run.append((tokens[j][1], tokens[j][2]))
+                j += 1
+            # Re-stitch the run with its internal whitespace.
+            run_text = "".join(w + b for w, b in run)
+            # Leading whitespace BEFORE the run (escaped) stays as
+            # plain text; only the body goes inside ``\(...\)``.
+            leading_ws = run[0][0]
+            run_body = run_text[len(leading_ws):]
+            parts.append(escape(leading_ws))
+            parts.append(r"\(" + _label_to_latex(run_body) + r"\)")
+            i = j
+        else:
+            parts.append(escape(ws + body))
+            i += 1
+    parts.append(escape(trailing_ws))
+    html = "".join(parts).strip()
+    if not html:
+        return escape(label), False
+    return html, True
 
 # Which relations get a terminal arrow.
 _ARROW_END = {
@@ -258,20 +526,82 @@ def _render_shape(ps: PlacedShape) -> str:
     # Regular shapes: centred label.
     if s.is_container:
         container_fs = max(10.0, s.font_size * 0.75)
-        label_x = ps.x + 8
-        label_y = ps.y + container_fs + 6
-        label = (
-            f'<text data-nid="{escape(s.nid)}" '
-            f'x="{label_x:g}" y="{label_y:g}" '
-            f'font-size="{container_fs:g}" font-family="sans-serif" '
-            f'font-style="italic" text-anchor="start" fill="#555">{escape(s.label)}</text>'
-        )
+        label = _render_container_label(ps, container_fs)
         return body + label
 
+    label = _render_inner_label(ps, lines, eff_fs)
+    return body + label
+
+
+def _render_container_label(ps: PlacedShape, container_fs: float) -> str:
+    """Italic title at the top-left of a container.
+
+    When the label contains math glyphs, route through a
+    ``<foreignObject>`` carrying the ``math-prose`` class so KaTeX
+    typesets it AND HTML word-wrapping prevents the title from
+    clipping past the container's right edge.  Pure prose stays on
+    the cheap ``<text>`` path so deterministic-bytes-out tests
+    keep their reference signatures.
+    """
+    s = ps.shape
+    html, has_math = _label_to_math_html(s.label)
+    # Always use foreignObject for container labels — this is the
+    # cheapest fix for the "long title clips at the box edge"
+    # problem because HTML naturally word-wraps to width.
+    label_x = ps.x + 8
+    label_y = ps.y + 4
+    fo_w = max(40.0, s.width - 16.0)
+    # Two-line cap so the title stays compact even on tiny containers.
+    fo_h = max(container_fs * 2.4, 30.0)
+    css_class = "sevim-label sevim-container-label"
+    if has_math:
+        css_class += " math-prose"
+    return (
+        f'<foreignObject data-nid="{escape(s.nid)}" '
+        f'x="{label_x:g}" y="{label_y:g}" '
+        f'width="{fo_w:g}" height="{fo_h:g}" '
+        f'style="overflow:visible;">'
+        f'<div xmlns="http://www.w3.org/1999/xhtml" class="{css_class}" '
+        f'style="font-size:{container_fs:g}px; '
+        f'font-family:ui-sans-serif,sans-serif; font-style:italic; '
+        f'color:#555; line-height:1.2; '
+        f'overflow:hidden; word-break:break-word; '
+        f'display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; '
+        f'text-overflow:ellipsis;">'
+        f'{html}'
+        f'</div>'
+        f'</foreignObject>'
+    )
+
+
+def _render_inner_label(
+    ps: PlacedShape, lines: list[str], eff_fs: float,
+) -> str:
+    """Centred body label for a regular concept-card shape.
+
+    Pure prose continues to render via flat ``<text>`` (preserving
+    byte-determinism for the existing relation tests).  When the
+    label contains math typography (Greek glyphs, sub/superscripts,
+    glued patterns like ``α0m`` or ``Zm``), we switch to a
+    ``<foreignObject>`` that carries a ``.math-prose`` div — the
+    frontend then runs KaTeX over the ``\\(...\\)`` segments inside
+    so the user sees ``α₀ₘ`` typeset, not ``α0m`` raw.
+    """
+    s = ps.shape
+    html, has_math = _label_to_math_html(s.label)
+    if not has_math:
+        return _render_inner_label_text(ps, lines, eff_fs)
+    return _render_inner_label_html(ps, html, eff_fs)
+
+
+def _render_inner_label_text(
+    ps: PlacedShape, lines: list[str], eff_fs: float,
+) -> str:
+    """Original flat ``<text>`` path — unchanged, kept byte-deterministic."""
+    s = ps.shape
     n = len(lines)
     label_x = ps.x + s.width / 2
     lh = eff_fs * 1.15
-    # Vertical centre: move up by half total text block, down by ascender ~0.35em
     total_h = n * lh
     label_y = ps.y + s.height / 2 - total_h / 2 + eff_fs * 0.8
     anchor = "middle"
@@ -282,13 +612,41 @@ def _render_shape(ps: PlacedShape) -> str:
         for line in lines[1:]:
             tspans.append(f'<tspan x="{label_x:g}" dy="{lh:g}">{escape(line)}</tspan>')
         inner = "".join(tspans)
-    label = (
+    return (
         f'<text data-nid="{escape(s.nid)}" '
         f'x="{label_x:g}" y="{label_y:g}" '
         f'font-size="{eff_fs:g}" font-family="sans-serif" '
         f'text-anchor="{anchor}" fill="#222">{inner}</text>'
     )
-    return body + label
+
+
+def _render_inner_label_html(
+    ps: PlacedShape, html: str, eff_fs: float,
+) -> str:
+    """Math-aware label via ``<foreignObject>`` + KaTeX auto-render."""
+    s = ps.shape
+    fo_w = max(40.0, s.width - 12.0)
+    fo_h = max(28.0, s.height - 12.0)
+    fo_x = ps.x + 6.0
+    fo_y = ps.y + 6.0
+    return (
+        f'<foreignObject data-nid="{escape(s.nid)}" '
+        f'x="{fo_x:g}" y="{fo_y:g}" '
+        f'width="{fo_w:g}" height="{fo_h:g}" '
+        f'style="overflow:visible;">'
+        f'<div xmlns="http://www.w3.org/1999/xhtml" '
+        f'class="sevim-label sevim-inner-label math-prose" '
+        f'style="font-size:{eff_fs:g}px; '
+        f'font-family:ui-sans-serif,sans-serif; '
+        f'color:#222; line-height:1.2; '
+        f'width:100%; height:100%; '
+        f'display:flex; align-items:center; justify-content:center; '
+        f'text-align:center; word-break:break-word; '
+        f'overflow:hidden;">'
+        f'{html}'
+        f'</div>'
+        f'</foreignObject>'
+    )
 
 
 def _render_conn(pc: PlacedConn, lookup: dict[str, PlacedShape]) -> str:

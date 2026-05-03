@@ -804,6 +804,14 @@
   <button id="pause-btn" class="secondary" disabled>Pause</button>
   <button id="resume-btn" class="secondary" disabled>Resume</button>
   <button id="stop-btn" class="secondary" disabled>Stop</button>
+  <button id="prev-section-btn" class="secondary" disabled
+          title="Previous section (Shift+←)">⏪</button>
+  <button id="prev-sentence-btn" class="secondary" disabled
+          title="Previous sentence (←)">⏮</button>
+  <button id="next-sentence-btn" class="secondary" disabled
+          title="Next sentence (→)">⏭</button>
+  <button id="next-section-btn" class="secondary" disabled
+          title="Next section (Shift+→)">⏩</button>
   <!-- Ask UI lives in the header now (right-pushed via
        ``margin-left:auto``) — the right column's "ask while it's
        reading" card has been retired and the user's question fires
@@ -1064,6 +1072,10 @@
   const pauseBtn = document.getElementById("pause-btn");
   const resumeBtn = document.getElementById("resume-btn");
   const stopBtn = document.getElementById("stop-btn");
+  const prevSentenceBtn = document.getElementById("prev-sentence-btn");
+  const nextSentenceBtn = document.getElementById("next-sentence-btn");
+  const prevSectionBtn = document.getElementById("prev-section-btn");
+  const nextSectionBtn = document.getElementById("next-section-btn");
   const maxInput = document.getElementById("max-content");
   const clauseEl = document.getElementById("current-clause");
   const logEl = document.getElementById("log");
@@ -2539,6 +2551,8 @@
     if (prevActive) prevActive.classList.remove("clause-active");
     const block = document.createElement("div");
     block.className = "clause clause-active";
+    block.dataset.seq = String(tl.seq);
+    block.title = "Click to jump narration here";
     for (const w of tl.words) {
       const span = document.createElement("span");
       span.className = "word";
@@ -2787,9 +2801,10 @@
         // fence-post errors when ``now`` falls between two chunks.
         if (now < tl.audioStart - 0.02) break;  // not yet
         if (now > tl.audioEnd + 0.05 && tl.finalized) {
-          // Past — also pop the clause once we're sure it finished
-          // so we don't carry stale timelines around all session.
-          map.delete(seq);
+          // Past — keep the entry (so the user can seek back to it
+          // via the prev/next sentence buttons) but don't pick it as
+          // the active seq.  ``clearTimelines`` wipes everything on
+          // session teardown.
           continue;
         }
         activeSeq = seq;
@@ -2830,6 +2845,11 @@
         if (tl.clauseEvent) {
           try { highlightActiveClause(tl.clauseEvent, true); } catch (_) {}
         }
+        // Tell the prev/next buttons that the cursor moved so they
+        // can re-enable / re-disable based on the new neighbors.
+        if (panel === "main" && state._refreshNavButtons) {
+          try { state._refreshNavButtons(); } catch (_) {}
+        }
       }
       // Mark transcript-done when the last clause's audio finishes
       // and no more clauses are queued.  Cheap polling — fine.
@@ -2859,6 +2879,171 @@
     if (state.timeline.main) state.timeline.main.clear();
     if (state.timeline.tangent) state.timeline.tangent.clear();
     state.activeSeqByPanel = { main: null, tangent: null };
+  }
+
+  // ─────────────────────────────────────────────────────────────────
+  // Sentence + section navigation.
+  //
+  // Every clause we have ever seen on ``main`` lives in
+  // ``state.timeline.main`` (we stopped pruning past clauses once nav
+  // was wired up).  ``seekToSeq`` jumps narration playback to the start
+  // of an arbitrary already-known clause: it stops every scheduled
+  // BufferSource, re-anchors each affected timeline at the new
+  // AudioContext cursor, re-schedules its stored buffers, and lets the
+  // rAF sync loop pick the seek target up on the next frame.
+  //
+  // Section = run of clauses sharing the same ``home_nid``.  Section
+  // navigation finds the first seq whose ``home_nid`` differs from the
+  // current section's (forward = next section's first clause; back =
+  // previous section's first clause).
+  function _mainSeqsSorted() {
+    const map = state.timeline.main;
+    if (!map) return [];
+    return [...map.keys()].sort((a, b) => a - b);
+  }
+  function _seqHomeNid(seq) {
+    const tl = state.timeline.main && state.timeline.main.get(seq);
+    return (tl && tl.clauseEvent && tl.clauseEvent.home_nid) || "";
+  }
+  function _currentMainSeq() {
+    const cur = state.activeSeqByPanel && state.activeSeqByPanel.main;
+    if (cur != null) return cur;
+    // Nothing active yet → fall back to whichever seq is closest to
+    // ``now`` so prev/next still feel correct just after resume.
+    const ctx = state.audioCtx;
+    const now = ctx ? ctx.currentTime : 0;
+    const seqs = _mainSeqsSorted();
+    let best = null;
+    for (const s of seqs) {
+      const tl = state.timeline.main.get(s);
+      if (!tl || tl.audioStart == null) continue;
+      if (tl.audioStart <= now) best = s;
+    }
+    return best != null ? best : (seqs[0] != null ? seqs[0] : null);
+  }
+  function _neighborSeq(direction) {
+    // direction: -1 prev sentence, +1 next sentence.
+    const cur = _currentMainSeq();
+    const seqs = _mainSeqsSorted();
+    if (!seqs.length) return null;
+    if (cur == null) return direction > 0 ? seqs[0] : seqs[seqs.length - 1];
+    const idx = seqs.indexOf(cur);
+    if (idx < 0) return seqs[0];
+    const tgt = idx + direction;
+    if (tgt < 0 || tgt >= seqs.length) return null;
+    return seqs[tgt];
+  }
+  function _neighborSection(direction) {
+    // direction: -1 prev section, +1 next section.
+    const cur = _currentMainSeq();
+    const seqs = _mainSeqsSorted();
+    if (!seqs.length || cur == null) return null;
+    const curHome = _seqHomeNid(cur);
+    if (direction > 0) {
+      // First seq AFTER cur whose home_nid differs.
+      const i = seqs.indexOf(cur);
+      for (let j = i + 1; j < seqs.length; j++) {
+        if (_seqHomeNid(seqs[j]) !== curHome) return seqs[j];
+      }
+      return null;
+    } else {
+      // Walk backwards: first find the start of the current section,
+      // then walk back into the previous section and find its start.
+      const i = seqs.indexOf(cur);
+      let curStart = i;
+      while (curStart > 0 && _seqHomeNid(seqs[curStart - 1]) === curHome) {
+        curStart--;
+      }
+      if (curStart === 0) return null;        // already in first section
+      const prevHome = _seqHomeNid(seqs[curStart - 1]);
+      let prevStart = curStart - 1;
+      while (prevStart > 0 && _seqHomeNid(seqs[prevStart - 1]) === prevHome) {
+        prevStart--;
+      }
+      return seqs[prevStart];
+    }
+  }
+
+  function seekToSeq(targetSeq) {
+    if (targetSeq == null) return false;
+    const map = state.timeline.main;
+    if (!map || !map.has(targetSeq)) return false;
+    const ctx = _audioCtx();
+    if (!ctx) return false;
+    if (ctx.state === "suspended") ctx.resume().catch(() => {});
+    // Silence whatever main panel audio is currently scheduled.
+    stopPanelAudio("main");
+    // Re-anchor the main scheduling cursor a hair ahead of "now" so
+    // the very first re-scheduled chunk has time to load.
+    const stream = state.audioStreams.main;
+    let cursor = ctx.currentTime + 0.05;
+    if (stream) stream.nextStartAt = cursor;
+    // Keep already-rendered past clauses visible (so the user can
+    // click further back through history); only strip the seek target
+    // and any clauses *after* it from the transcript pane so the rAF
+    // loop's re-render doesn't duplicate them.
+    const liveBlocks = clauseEl.querySelectorAll(".clause[data-seq]");
+    for (const b of liveBlocks) {
+      const s = parseInt(b.dataset.seq, 10);
+      if (!Number.isNaN(s) && s >= targetSeq) b.remove();
+    }
+    // Remove the "✓ narration complete" tag if a previous run set it.
+    const doneTag = clauseEl.querySelector(".transcript-done");
+    if (doneTag) doneTag.remove();
+    // Demote whatever clause was visually "active" to history; the new
+    // seek target will become the active one when it re-renders.
+    const prevActive = clauseEl.querySelector(".clause-active");
+    if (prevActive) prevActive.classList.remove("clause-active");
+    // Re-schedule all timelines from the target seq onward.  Past
+    // clauses (seq < target) are kept as data but their chunks no
+    // longer play; their DOM was just wiped by resetClausePane.
+    const seqs = _mainSeqsSorted();
+    for (const seq of seqs) {
+      const tl = map.get(seq);
+      if (!tl) continue;
+      // Reset render + visual-op state on every timeline so the rAF
+      // loop treats them as fresh.  We only RE-SCHEDULE chunks for
+      // seq >= target; earlier seqs stay quiet.
+      tl.firedVisualOps = new Set();
+      tl.lastWordIdx = -1;
+      tl.rendered = false;
+      tl.domBlock = null;
+      for (const w of tl.words) w.span = null;
+      if (seq < targetSeq) {
+        // Mark "in the past" so syncFrame's audioStart check skips it.
+        // Keep ctxStart values as they were; they're already < now.
+        continue;
+      }
+      // Re-schedule each stored AudioBuffer at the running cursor.
+      // We allocate brand-new BufferSource nodes — the old ones were
+      // single-shot and have been .stop()'d above.
+      for (const c of tl.chunks) {
+        if (!c.buffer) continue;
+        const startAt = cursor;
+        const src = ctx.createBufferSource();
+        src.buffer = c.buffer;
+        src.connect(ctx.destination);
+        try { src.start(startAt); } catch (_) { continue; }
+        if (!stream.sources) stream.sources = [];
+        stream.sources.push(src);
+        src.onended = () => {
+          const i = stream.sources.indexOf(src);
+          if (i >= 0) stream.sources.splice(i, 1);
+        };
+        c.ctxStart = startAt;
+        cursor = startAt + (c.dur || c.buffer.duration);
+      }
+      rebuildTimelineWords(tl);
+    }
+    // Make sure subsequent live audio_chunk events queue AFTER the
+    // re-scheduled tail.
+    if (stream) stream.nextStartAt = cursor;
+    // Force the rAF loop to treat the next frame as a fresh
+    // activation: clears stale highlight on the prior clause and
+    // re-applies focus on the seek target.
+    state.activeSeqByPanel.main = null;
+    addLog("seek", `clause ${targetSeq}`);
+    return true;
   }
 
   // Shared per-panel audio queue.  Chunks from different clauses
@@ -2962,6 +3147,8 @@
       text: (data.text || "").trim(),
       ctxStart: startAt,
       dur: buffer.duration,
+      buffer,                 // retained so seekToSeq can replay
+      rate,
     });
     rebuildTimelineWords(tl);
     startSyncLoop();
@@ -3297,6 +3484,14 @@
       pauseBtn.disabled = false;
       resumeBtn.disabled = true;
     }
+    // Sentence + section navigation is only meaningful while a session
+    // is live; ``_refreshNavButtons`` then narrows further based on
+    // whether prev/next neighbors exist for the current cursor.
+    prevSentenceBtn.disabled = !running;
+    nextSentenceBtn.disabled = !running;
+    prevSectionBtn.disabled = !running;
+    nextSectionBtn.disabled = !running;
+    if (running) _refreshNavButtons();
     // Ask is always available — if no session exists yet, the click handler
     // creates a Q&A-only session for the question.
   }
@@ -4126,6 +4321,30 @@
       status.hidden = true;
       status.textContent = "";
     }
+    // SeVim node labels containing math (Greek glyphs, glued
+    // subscripts like ``α0m`` / ``αTmX``) ride inside
+    // ``<foreignObject><div class="math-prose">`` blocks emitted by
+    // ``sevim/s5_render.py:_render_inner_label_html``.  Compile them
+    // via the same ``\(...\)`` auto-render pass used by reference
+    // cards so the user sees ``α₀ₘ`` typeset, not ``α0m`` raw.
+    try { runMathAutoRender(svgHost); } catch (_) {}
+    try {
+      svgHost.querySelectorAll(".math-card").forEach((el) => {
+        try {
+          if (!window.katex) return;
+          const latex = (el.getAttribute("data-latex") || el.textContent || "")
+                        .replace(/^\s*\\\[|\\\]\s*$/g, "")
+                        .replace(/^\s*\\\(|\\\)\s*$/g, "")
+                        .trim();
+          el.innerHTML = "";
+          window.katex.render(latex, el, {
+            displayMode: false,
+            throwOnError: false,
+            output: "html",
+          });
+        } catch (_) { /* leave plain */ }
+      });
+    } catch (_) {}
     // Re-render the legend whenever the SVG body changes — it
     // depends entirely on which ``data-eid`` attributes the new
     // SVG carries.
@@ -4670,6 +4889,65 @@
     setPausedUI(false);
     addLog("resumed", `paused for ${(pausedFor / 1000).toFixed(1)}s`);
   });
+
+  // Update enabled state on the four navigation buttons based on
+  // whether prev/next neighbors exist for the current cursor.  Called
+  // every time the active clause changes (from the rAF loop, see the
+  // ``activeSeq`` transition block in ``syncFrame``) and after each
+  // seek.
+  function _refreshNavButtons() {
+    if (!state.plan_id) {
+      prevSentenceBtn.disabled = true;
+      nextSentenceBtn.disabled = true;
+      prevSectionBtn.disabled = true;
+      nextSectionBtn.disabled = true;
+      return;
+    }
+    prevSentenceBtn.disabled = _neighborSeq(-1) == null;
+    nextSentenceBtn.disabled = _neighborSeq(+1) == null;
+    prevSectionBtn.disabled = _neighborSection(-1) == null;
+    nextSectionBtn.disabled = _neighborSection(+1) == null;
+  }
+  // Expose to syncFrame so it can refresh button states on every
+  // active-seq transition without forming a hard reference cycle.
+  state._refreshNavButtons = _refreshNavButtons;
+
+  function _seekAndRefresh(target, label) {
+    if (target == null) return;
+    if (state.paused) {
+      // Auto-resume on seek so the user doesn't get a "nothing
+      // happens" experience after clicking Pause then a nav button.
+      try { resumeBtn.click(); } catch (_) {}
+    }
+    if (seekToSeq(target)) _refreshNavButtons();
+    else addLog("seek failed", label);
+  }
+
+  // Click any clause in the transcript pane to jump narration there.
+  // We delegate from ``clauseEl`` so dynamically-rendered clauses get
+  // the handler for free without re-binding on every render.
+  clauseEl.addEventListener("click", (e) => {
+    if (!state.plan_id) return;
+    const block = e.target && e.target.closest && e.target.closest(".clause[data-seq]");
+    if (!block) return;
+    const seq = parseInt(block.dataset.seq, 10);
+    if (Number.isNaN(seq)) return;
+    _seekAndRefresh(seq, "clicked clause " + seq);
+  });
+
+  prevSentenceBtn.addEventListener("click", () => {
+    _seekAndRefresh(_neighborSeq(-1), "prev sentence");
+  });
+  nextSentenceBtn.addEventListener("click", () => {
+    _seekAndRefresh(_neighborSeq(+1), "next sentence");
+  });
+  prevSectionBtn.addEventListener("click", () => {
+    _seekAndRefresh(_neighborSection(-1), "prev section");
+  });
+  nextSectionBtn.addEventListener("click", () => {
+    _seekAndRefresh(_neighborSection(+1), "next section");
+  });
+
   // Reusable "tear down the current session NOW" — called by Stop
   // and by anything that starts a fresh session (e.g. clicking a
   // new chapter).  Cancels the server-side orchestrator, closes
@@ -4794,6 +5072,28 @@
   });
   askInput.addEventListener("keydown", e => { if (e.key === "Enter") askBtn.click(); });
   topicInput.addEventListener("keydown", e => { if (e.key === "Enter") startBtn.click(); });
+
+  // Global narration-navigation shortcuts.
+  //   ←  / →               : prev / next sentence
+  //   Shift+← / Shift+→    : prev / next section
+  // We intentionally swallow these keys only when a session is live AND
+  // the user isn't typing into a text field — otherwise arrow keys must
+  // still behave normally inside ``<input>`` / ``<textarea>``.
+  document.addEventListener("keydown", (e) => {
+    if (!state.plan_id) return;
+    if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+    const tgt = e.target;
+    const tag = tgt && tgt.tagName;
+    if (tag === "INPUT" || tag === "TEXTAREA" || (tgt && tgt.isContentEditable)) {
+      return;
+    }
+    if (e.altKey || e.ctrlKey || e.metaKey) return;
+    const dir = e.key === "ArrowRight" ? +1 : -1;
+    const target = e.shiftKey ? _neighborSection(dir) : _neighborSeq(dir);
+    if (target == null) return;
+    e.preventDefault();
+    _seekAndRefresh(target, e.shiftKey ? "kbd section" : "kbd sentence");
+  });
 
   // Header Ask form — mirrors the (now-hidden) right-column ask
   // controls.  Whenever the header input/button fires, copy the
