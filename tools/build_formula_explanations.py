@@ -33,7 +33,7 @@ LLM_URL = "http://127.0.0.1:8000/v1/chat/completions"
 LLM_MODEL = "Qwen/Qwen2.5-14B-Instruct-AWQ"
 
 
-_SYSTEM_PROMPT = """You are explaining one mathematical equation to a
+_SYSTEM_PROMPT_EQUATION = """You are explaining one mathematical equation to a
 curious adult who has not done college math in years.  Output ONE plain-
 English paragraph (3-5 sentences) tied to the section's story.
 
@@ -59,6 +59,126 @@ HARD RULES:
 
 OUTPUT FORMAT: JSON ``{"explanation": "..."}`` — one paragraph as a
 single string."""
+
+
+_SYSTEM_PROMPT_DEFINITION = """You are explaining one DEFINITION from
+a math/CS textbook to a curious adult.  The definition introduces a
+new mathematical object (often as an n-tuple or a relation).  Output
+a thorough plain-English paragraph (5-8 sentences) that makes the
+definition click for someone hearing it for the first time.
+
+HARD RULES:
+
+1. INTUITION FIRST.  Before any formula, give one sentence of
+   plain-English intuition for the object — what kind of thing is
+   it, what does it model.  ("A finite automaton is a tiny machine
+   that reads symbols one at a time and decides whether to accept
+   the input.")
+
+2. EVERY COMPONENT EXPLAINED.  If the definition is "M is a 5-tuple
+   (Q, Σ, δ, q0, F)", walk through ALL FIVE parts in order, giving
+   each its own clause: what Q is (set of states), what Σ is
+   (alphabet of input symbols), what δ does (the rule that says
+   "if I'm in this state and read this symbol, here is the next
+   state"), what q0 marks (where the machine starts), what F
+   selects (which states make the input accepted).  Don't skip a
+   part because "it's obvious".
+
+3. CONTRAST WITH NEAR NEIGHBOURS.  When the definition has a
+   well-known sibling (DFA vs NFA, finite vs infinite, total vs
+   partial, deterministic vs nondeterministic), end with one short
+   clause naming the difference, so the listener slots this object
+   in their mental taxonomy.
+
+4. PLAIN ENGLISH.  Spell math: "the set Q", "the alphabet sigma",
+   "the transition function delta from Q-cross-sigma to Q".  No raw
+   LaTeX, no glyphs.
+
+OUTPUT FORMAT: JSON ``{"explanation": "..."}`` — one paragraph."""
+
+
+_SYSTEM_PROMPT_THEOREM = """You are explaining one THEOREM (or
+LEMMA / COROLLARY / PROPOSITION) from a math/CS textbook to a
+curious adult.  Output a thorough plain-English paragraph (4-6
+sentences).
+
+HARD RULES:
+
+1. SAY WHAT IT CLAIMS in one sentence.  Strip the formal language;
+   say it the way a colleague would explain it at a whiteboard.
+
+2. WHY DOES IT MATTER.  One sentence on what the theorem buys
+   you — what kinds of arguments / constructions / closure
+   properties it lets you make.  ("Closure under union is what
+   lets us combine two pattern-matchers into one machine without
+   blowing up the state space.")
+
+3. EXPLAIN ANY NAMED OBJECT in the statement.  If the theorem
+   references "regular languages", say in one clause what those
+   are.  If it talks about "nondeterministic finite automata",
+   the listener already heard that defined; you don't have to
+   re-define, just remind ("the more flexible kind of machine we
+   defined earlier").
+
+4. INTUITION.  Close with one sentence of why the theorem is
+   plausible — a sketch of the idea ("you build the union machine
+   by running both originals in parallel and accepting if either
+   one accepts"), without giving the full proof.
+
+5. PLAIN ENGLISH.  No raw LaTeX, no glyphs.
+
+OUTPUT FORMAT: JSON ``{"explanation": "..."}`` — one paragraph."""
+
+
+_SYSTEM_PROMPT_ALGORITHM = """You are explaining one ALGORITHM
+from a math/CS textbook to a curious adult.  Output a thorough
+plain-English paragraph (5-8 sentences).
+
+HARD RULES:
+
+1. WHAT IS IT FOR.  Open with one sentence on the problem the
+   algorithm solves and the input it expects.
+
+2. STEP-BY-STEP.  Walk the algorithm's stages in order, each as
+   one short clause.  ("First, you initialise an empty queue and
+   put the start state in it.  Then you repeatedly pull a state
+   off the queue …").  Skip nothing material.
+
+3. EXPLAIN ANY NAMED VARIABLES.  If the algorithm introduces a
+   counter "i" or a working set "S", name it briefly when first
+   used.
+
+4. CORRECTNESS / TERMINATION HINT.  One sentence on why the
+   algorithm halts and returns the right answer — usually a loop
+   invariant or a monotonic measure.
+
+5. PLAIN ENGLISH.  No raw LaTeX, no pseudocode glyphs.
+
+OUTPUT FORMAT: JSON ``{"explanation": "..."}`` — one paragraph."""
+
+
+_SYSTEM_PROMPT_BY_KIND: dict[str, str] = {
+    "definition":  _SYSTEM_PROMPT_DEFINITION,
+    "theorem":     _SYSTEM_PROMPT_THEOREM,
+    "lemma":       _SYSTEM_PROMPT_THEOREM,
+    "corollary":   _SYSTEM_PROMPT_THEOREM,
+    "proposition": _SYSTEM_PROMPT_THEOREM,
+    "claim":       _SYSTEM_PROMPT_THEOREM,
+    "algorithm":   _SYSTEM_PROMPT_ALGORITHM,
+}
+
+
+def _system_prompt_for(node: dict) -> str:
+    """Pick the kind-tuned system prompt based on the chapter-map
+    node's ``kind`` field — definitions / theorems / algorithms get
+    structurally-richer paragraphs than equations."""
+    kind = (node.get("kind") or "").strip().lower()
+    return _SYSTEM_PROMPT_BY_KIND.get(kind, _SYSTEM_PROMPT_EQUATION)
+
+
+# Backwards-compat alias for the old constant name some callers
+# may have imported.
+_SYSTEM_PROMPT = _SYSTEM_PROMPT_EQUATION
 
 
 def _call_llm(system: str, user: str, *,
@@ -99,11 +219,27 @@ def _call_llm(system: str, user: str, *,
     return None
 
 
+_STRUCTURAL_KINDS = {
+    "theorem", "definition", "lemma", "corollary",
+    "proposition", "claim", "algorithm", "example",
+}
+
+
 def _which_nodes_need_pin(root: dict) -> list[dict]:
-    """Mirror plan_chapter_zoom + _mark_visible_formulas: every node
-    whose narration emits a formula_pin clause is a candidate for an
-    explanation.  That's the chapter root (always) plus any cell that
-    introduces a new equation label compared to its DFS predecessor.
+    """Pick every node that should get a plain-English ``formula_explanation``.
+
+    Two routes in:
+      * Equation-bearing nodes — the chapter root (always) plus any
+        cell that introduces a *new* equation label compared to its
+        DFS predecessor.  Mirrors ``plan_chapter_zoom``'s
+        ``last_pin_label`` rule so we explain the equation exactly
+        when the narrator first names it.
+      * Structural nodes — theorems, definitions, lemmas, algorithms,
+        etc.  These deserve a thorough explanation regardless of
+        whether the math-graph attached an equation to them: a
+        definition without a 5-tuple still needs its parts walked,
+        a theorem statement needs the claim restated in plain
+        English.
     """
     out: list[dict] = []
     last_label = ""
@@ -112,23 +248,23 @@ def _which_nodes_need_pin(root: dict) -> list[dict]:
         nonlocal last_label
         cf_label = (n.get("canonical_formula_label") or "").strip()
         cf_latex = (n.get("canonical_formula_latex") or "").strip()
-        own_id = (n.get("canonical_formula_id") or "").strip()
-        if not cf_label or not cf_latex:
-            for c in n.get("children", []) or []:
-                _walk(c, is_root=False)
-            return
-        # First-occurrence rule, same as the renderer's
-        # _mark_visible_formulas + the planner's last_pin_label.  The
-        # chapter root paints its formula but the planner does NOT
-        # call _emit_node on it, so its label does not advance the
-        # planner's last_pin_label tracker.  Mirror that here so the
-        # next L1 child (e.g. §5.1) is still treated as the *first*
-        # introducer of its label and gets its own explanation.
-        introduces = (is_root or cf_label != last_label)
-        if introduces:
-            out.append(n)
-            if not is_root:
-                last_label = cf_label
+        kind = (n.get("kind") or "").strip().lower()
+        # Equation-bearing nodes follow the first-occurrence rule
+        # so the narrator's pin-and-explanation chain doesn't repeat.
+        if cf_label and cf_latex:
+            introduces = (is_root or cf_label != last_label)
+            if introduces:
+                out.append(n)
+                if not is_root:
+                    last_label = cf_label
+        # Structural nodes (theorem / definition / algorithm / …)
+        # get explained even without a formula attached, AND on top
+        # of the equation-pin if both apply.
+        elif kind in _STRUCTURAL_KINDS:
+            text = ((n.get("story_paragraph") or "").strip()
+                    or (n.get("gist") or "").strip())
+            if text:
+                out.append(n)
         for c in n.get("children", []) or []:
             _walk(c, is_root=False)
 
@@ -146,16 +282,30 @@ def _user_prompt(node: dict) -> str:
     story = (node.get("story_paragraph") or "").strip()
     cf_label = (node.get("canonical_formula_label") or "").strip()
     cf_latex = (node.get("canonical_formula_latex") or "").strip()
-    return (
-        f"SECTION: {label}\n"
-        f"GIST: {gist}\n"
-        f"NARRATIVE PARAGRAPH: {story}\n\n"
-        f"EQUATION TO EXPLAIN — label: {cf_label}\n"
-        f"LaTeX: {cf_latex}\n\n"
-        f"Write the 3-5 sentence plain-English walk-through of this "
-        f"equation as JSON: {{\"explanation\": \"...\"}}.  Name every "
-        f"symbol; tie the meaning back to the section's narrative."
-    )
+    body_text = (node.get("body_text") or "").strip()
+    parts = [
+        f"SECTION KIND: {kind}",
+        f"SECTION LABEL: {label}",
+        f"GIST: {gist}" if gist else "",
+        f"NARRATIVE PARAGRAPH: {story}" if story else "",
+        f"BODY TEXT: {body_text[:1500]}" if body_text else "",
+    ]
+    if cf_label and cf_latex:
+        parts.append(f"EQUATION TO EXPLAIN — label: {cf_label}")
+        parts.append(f"LaTeX: {cf_latex}")
+        parts.append(
+            "Write the plain-English explanation as JSON "
+            "``{\"explanation\": \"...\"}``.  Follow the system "
+            "prompt's rules for this kind of section."
+        )
+    else:
+        parts.append(
+            "Write the plain-English explanation of this "
+            "section's central idea as JSON "
+            "``{\"explanation\": \"...\"}``.  Follow the system "
+            "prompt's rules for this kind of section."
+        )
+    return "\n\n".join(p for p in parts if p)
 
 
 def enrich(sidecar_path: str, *, force: bool = False) -> int:
@@ -190,7 +340,7 @@ def enrich(sidecar_path: str, *, force: bool = False) -> int:
         nid = node.get("nid") or "?"
         cf_label = node.get("canonical_formula_label") or "?"
         print(f"  [{i}/{len(targets)}] {nid} :: {cf_label}", flush=True)
-        out = _call_llm(_SYSTEM_PROMPT, _user_prompt(node))
+        out = _call_llm(_system_prompt_for(node), _user_prompt(node))
         if not isinstance(out, dict):
             print(f"    skipped — LLM gave no JSON", flush=True)
             continue
