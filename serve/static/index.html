@@ -4028,18 +4028,35 @@
     // 1. Cell's own identity wins (the user is *on* this cell).
     const cellLabel = _cellIdentityLabel(home);
     if (cellLabel) labels.push(cellLabel.toLowerCase());
-    // 2. Then any labels named in the spoken clause, in order.
-    //    ``_spokenEquationLabels`` handles spelled-out numbers
-    //    ("figure one point fourteen" → "figure 1.14").
+    // 2. Then any FIGURE/TABLE/DIAGRAM labels named in the spoken
+    //    clause, in order.  ``_spokenEquationLabels`` handles
+    //    spelled-out numbers ("figure one point fourteen" →
+    //    "figure 1.14").  We deliberately filter to figure-class
+    //    labels only — equation citations don't move the figure
+    //    highlight.
+    let foundFigureLabel = false;
     if (clauseText) {
       try {
         for (const s of (_spokenEquationLabels(clauseText) || [])) {
           const low = s.toLowerCase();
-          if (!labels.includes(low)) labels.push(low);
+          if (/^(figure|table|diagram|example|definition|theorem|lemma|corollary|proposition|claim|algorithm)\b/.test(low)) {
+            if (!labels.includes(low)) labels.push(low);
+            foundFigureLabel = true;
+          }
         }
       } catch (_) { /* ignore */ }
     }
-    _activeFigureLabels = labels;
+    // Persistence rule: only OVERWRITE the active labels when this
+    // clause mentioned a figure-class label or carries a cell
+    // identity.  Otherwise leave the previous highlight in place —
+    // the narrator will often mention "Figure 11.2" once and then
+    // discuss it for several clauses without re-naming it; the
+    // highlight should stay on Figure 11.2 throughout that
+    // discussion, not flicker off as soon as the next clause
+    // talks about something else.
+    if (foundFigureLabel || cellLabel) {
+      _activeFigureLabels = labels;
+    }
   }
 
   function _highlightMentionedFigure() {
