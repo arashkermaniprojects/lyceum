@@ -367,6 +367,31 @@ if it regresses.
     ``X_{tr}`` and ``y_{tr}`` are.  No regex can decide this
     alone — ``new`` is a real English word AND a legitimate
     subscript depending on context.
+
+33. **Pause / Stop go dead mid-narration** — a long chapter
+    narration (5-15 min) would lose the Pause / Stop controls
+    after a few minutes and never recover.  Cause: the SSE
+    ``EventSource`` ``onerror`` handler force-closed the stream
+    on the first transient blip (``es.close()`` +
+    ``setRunningUI(false)``), KILLING the browser's built-in
+    auto-reconnect.  ``onerror`` fires for many transient
+    conditions (idle Kokoro synth window, brief network hiccup,
+    tab throttling) and the standard handling is to let the
+    browser flip readyState to CONNECTING and retry — which our
+    code prevented.  Fixed in commit ``7de0229`` to treat
+    ``onerror`` as fatal ONLY when readyState is ``CLOSED`` (the
+    browser has given up retrying); otherwise log a low-cadence
+    "sse blip" warning and leave the EventSource alone.
+    *Check:* Tier 3 e2e: run a chapter narration for ≥ 5 min
+    while injecting simulated SSE-server pauses (``window.fetch``
+    intercept that drops the EventSource for 2-3 s every 60 s);
+    assert ``#pause-btn.disabled === false`` AND
+    ``#stop-btn.disabled === false`` for the entire run.
+    Tracked in inspector section A as
+    **A18_pause_stop_never_blocked** (offline check stares at
+    the JS source and flags any place that calls
+    ``setRunningUI(false)`` without first verifying the SSE is
+    truly closed).
     The right check is semantic / math-aware:
 
       * For each formula in ``<book>.math_graph.json``, render the
@@ -598,6 +623,18 @@ A17. **Formula semantic fidelity** (math-aware, VLM-backed): for
      ``Xnew`` and ``X_{new}`` form across formulas in the same
      chapter, flag the inconsistency for normalisation.  Local
      only — the VLM lives on the user's hardware.
+
+A18. **Pause / Stop never blocked** (static JS check): grep the
+     frontend source and verify every place that calls
+     `setRunningUI(false)` first verifies the SSE EventSource is
+     truly closed (`es.readyState === EventSource.CLOSED`) or is
+     a USER-initiated stop (Stop click, chapter switch).
+     Specifically the SSE `onerror` handler must not force-close
+     the stream on transient errors — that destroys the
+     browser's auto-reconnect machinery and leaves the controls
+     dead.  Tier 3 e2e companion check: run a chapter narration
+     for ≥ 5 min with injected SSE blips and assert the buttons
+     stay enabled.  Catches regressions of bug #33.
 
 ### B. Render-layer (per visual op, online)
 
