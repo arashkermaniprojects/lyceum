@@ -3469,9 +3469,34 @@
       markTranscriptDone();
     });
     es.onerror = () => {
-      es.close(); state.evtSource = null;
-      state.plan_id = null;
-      setRunningUI(false);
+      // EventSource fires ``onerror`` on many transient conditions
+      // — a brief network hiccup, a long idle window during Kokoro
+      // synth, a tab-throttling pause — and the browser handles
+      // all of those by transitioning readyState to CONNECTING and
+      // auto-retrying after the server's ``retry`` interval.
+      // Force-closing here on the FIRST onerror event killed the
+      // auto-reconnect machinery, so a chapter narration that
+      // ran 10 minutes lost its session (and Pause / Stop went
+      // dead) on the first idle blip.
+      //
+      // Treat onerror as fatal ONLY when readyState reaches
+      // CLOSED — that means the browser has given up retrying.
+      // While CONNECTING, leave the EventSource alone so it can
+      // recover.
+      if (es.readyState === EventSource.CLOSED) {
+        state.evtSource = null;
+        state.plan_id = null;
+        setRunningUI(false);
+        addLog("session lost", "stream closed");
+      } else {
+        // Transient — log once at a low cadence so we notice
+        // chronic flapping without spamming the log.
+        if (!state._sseFlapAt
+              || performance.now() - state._sseFlapAt > 30000) {
+          addLog("sse blip", "auto-reconnecting");
+          state._sseFlapAt = performance.now();
+        }
+      }
     };
   }
 
