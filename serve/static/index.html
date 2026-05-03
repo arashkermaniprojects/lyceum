@@ -5260,11 +5260,20 @@
     const _tocW = 280, _bpad = 32;
     const _rightW = Math.max(380, Math.round(_vw * 0.28));
     const _canvasW = Math.max(720, _vw - _tocW - _rightW - _bpad);
+    // Enable Pause / Stop the moment the user clicks a chapter so the
+    // controls are responsive during the ~1-2s LLM warmup before the
+    // first SSE event arrives.  startStream() will re-affirm this; we
+    // only flip back to disabled once the SSE ``done`` event lands.
+    try { setRunningUI(true); } catch (_) {}
     postJSON("/api/narrate_node", {
       nid, max_content: +maxInput.value, detail_level: (document.getElementById("detail-level")||{}).value || "L1_story" || 8,
       canvas_w: _canvasW,
     }).then(({plan_id, error}) => {
-      if (error) { addLog("narrate_node error", error); return; }
+      if (error) {
+        addLog("narrate_node error", error);
+        try { setRunningUI(false); } catch (_) {}
+        return;
+      }
       startStream(plan_id, "node " + nid);
     });
   }

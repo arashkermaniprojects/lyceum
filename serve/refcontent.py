@@ -255,6 +255,64 @@ def to_latex(text: str) -> str:
     s = s.replace("#", r"\#").replace("&", r"\&").replace("%", r"\%")
     # Tidy multiple spaces.
     s = re.sub(r" {2,}", " ", s)
+    # Subscript-joining: PyMuPDF's ``Z_m`` arrives as plain ``Zm``,
+    # ``y_{ik}`` as ``yik``, ``f_k`` as ``fk``, ``\alpha_{0m}`` as
+    # ``\alpha 0m``.  Without subscript braces these render in KaTeX
+    # as run-on text ``Zm``, ``yiklogfk(xi)`` etc.  Add the braces by
+    # detecting a single math-symbol head followed by 1-3 lowercase
+    # letters or digits, none of which alone would be a math operator
+    # name.  Patterns handled:
+    #   ``Z m`` / ``Zm``      → ``Z_{m}``
+    #   ``y ik`` / ``yik``    → ``y_{ik}``
+    #   ``f k`` / ``fk``      → ``f_{k}``
+    #   ``\alpha 0m``         → ``\alpha_{0m}``
+    #   ``\beta T m``         → handled separately by the transpose
+    #                           repair upstream; this only joins
+    #                           subscripts not superscripts.
+    _OP_NAMES = {
+        "log", "ln", "exp", "sin", "cos", "tan", "cot", "sec", "csc",
+        "min", "max", "arg", "sup", "inf", "lim", "det", "tr", "diag",
+        "var", "cov", "rank", "sgn", "sign", "mod",
+    }
+    # Common English words that look like ``head + suffix`` glued —
+    # don't subscript these.
+    _SHORT_PROSE = {
+        "is", "in", "on", "at", "to", "of", "an", "or", "no", "be",
+        "as", "by", "we", "us", "my", "if", "do", "go", "so", "it",
+        "the", "and", "for", "all", "any", "are", "can", "has", "had",
+        "her", "his", "let", "may", "not", "now", "off", "one", "our",
+        "out", "say", "see", "set", "she", "two", "who", "why", "you",
+    }
+    def _join_sub(m: "re.Match[str]") -> str:
+        head, sub = m.group(1), m.group(2)
+        whole = head + sub
+        if whole.lower() in _OP_NAMES:
+            return "\\" + whole
+        if whole.lower() in _SHORT_PROSE:
+            return m.group(0)
+        return f"{head}_{{{sub}}}"
+    # Pass 1: ``\command 0xx`` (Greek/LaTeX command + space + tail
+    # starting with a digit).  Common in PDF-extracted math like
+    # ``\alpha 0m`` (= ``\alpha_{0m}``).  We REQUIRE a digit-prefix
+    # tail to avoid mis-subscripting ``\alpha x`` (which is two
+    # independent variables).
+    s = re.sub(
+        r"(\\[A-Za-z]+)\s+(\d[0-9a-z]{0,2})\b",
+        lambda m: f"{m.group(1)}_{{{m.group(2)}}}",
+        s,
+    )
+    # Pass 2: glued ``Zm`` / ``yik`` / ``fk`` / ``xi`` — single
+    # letter head + (1-2 lowercase OR 1-3 digit) tail, NO whitespace
+    # between.  Letter tails are capped at 2 to avoid splitting
+    # 4+ letter English words like ``maps``, ``over``, ``loss`` whose
+    # last 3 letters look like a subscript.  Digit tails up to 3 are
+    # safe (``R012``, ``f001``).  Skips operator names + short
+    # English words via the helper.
+    s = re.sub(
+        r"(?<![A-Za-z\\])([A-Za-z])([a-z]{1,2}|\d{1,3})"
+        r"(?![A-Za-z])",
+        _join_sub, s,
+    )
     # Per-line: detect a single uppercase letter line right after a value
     # — that's often the denominator of a stacked fraction (PDF flattening
     # ``d / N``).  We can't reliably reconstruct \frac, so leave it as is
