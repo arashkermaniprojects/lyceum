@@ -182,11 +182,36 @@ if it regresses.
     inside `highlightActiveClause`; the streaming-TTS path reaches
     this through `syncFrame`'s `activeSeq` transition.  Regression
     risk every time we touch `panelInfo`, the SSE clause schema, or
-    the figure-card data attributes.
+    the figure-card data attributes.  Also: the highlight must
+    PERSIST until a different figure-class label is mentioned (a
+    figure typically gets named once and discussed for several
+    clauses; the highlight should not flicker off on the next
+    non-figure clause).  Fixed in commit `bded974`.
     *Check:* end-to-end: trigger a chapter narration that mentions
     a figure label by spoken citation; assert
     `document.querySelectorAll('.figure-card.is-active').length === 1`
-    within 1 second of the relevant clause becoming active.
+    within 1 second of the relevant clause becoming active and for
+    the next 3 clauses thereafter (persistence).
+
+26. **Mentioned equations rendered only by their canonical-cell
+    formula** — chapter-zoom cells display ONE canonical formula
+    (the one ``_pick_canonical_formula`` chose during chapter_map
+    build), but the cell's story_paragraph routinely names two or
+    three other cited equations the user is told to "see".  The
+    user hears "equation 11.2 represents the cost function" but the
+    cell only shows Equation 11.1.  This contradicts the paper's
+    promise that "every formula the spoken text names is on screen."
+    Fix not yet shipped — the architecturally correct solution is
+    to surface the mentioned-equation as a transient card on the
+    right panel (analogous to the figure-card highlight) or to
+    weaken the chapter-zoom-suppresses-everything rule for cited
+    equations.
+    *Check:* parse every chapter-zoom cell's story_paragraph for
+    spoken equation labels (``equation N.M``); assert each label is
+    either the cell's canonical formula OR has a corresponding
+    visual artifact rendered when that clause is the active one.
+    Open A-class issue, not a regression.  Tracked in inspector
+    section A as **A11_mentioned_equation_visible** (new).
 
 ---
 
@@ -281,6 +306,19 @@ A9. **KaTeX validity**: every `latex` field in math_graph and
 A10. **Local-only invariant**: no sidecar, no .py, no JS file
      references `api.openai.com`, `api.anthropic.com`, or any other
      external LLM endpoint. (Memory: `feedback_local_only.md`.)
+
+A11. **Mentioned-equation visibility**: every spoken equation label
+     (`equation N.M`) inside a chapter-zoom cell's `story_paragraph`
+     either matches that cell's `canonical_formula_label` OR has an
+     entry in the math graph that the runtime narrator surfaces as a
+     visible card when the host clause is active.  In practice this
+     means: parse the story_paragraph, extract `equation \d+\.\d+`
+     matches, and for each, confirm `cite_label == canonical_label`
+     OR plan a follow-up surface (transient card / ghost card / or
+     widen the chapter-zoom suppression rule).  Initial enforcement
+     is offline (data-quality agent flags chapters where N>1
+     equation labels are spoken but only 1 is the canonical
+     formula); the runtime fix is on the roadmap.
 
 ### B. Render-layer (per visual op, online)
 
