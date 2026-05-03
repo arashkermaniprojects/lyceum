@@ -1641,6 +1641,36 @@ class _Handler(BaseHTTPRequestHandler):
         self.send_header("Connection", "keep-alive")
         self.send_header("X-Accel-Buffering", "no")
         self.end_headers()
+
+        # Heartbeat thread — emits an SSE comment every HEARTBEAT_S
+        # seconds while ``next_event()`` is blocked, so that browsers
+        # / corporate proxies with a 30-60 s idle timeout don't tear
+        # the connection down during a long Kokoro synth.  The line
+        # ``: heartbeat\n\n`` is an SSE comment (per the spec)
+        # and is NOT delivered to any addEventListener handler — it
+        # exists purely to keep the byte pipe warm.  ``_write_lock``
+        # is shared between this thread and the main producer loop
+        # so the heartbeat bytes never interleave inside a real
+        # ``event:`` frame.
+        import threading
+        self._sse_write_lock = threading.Lock()
+        stop_heartbeat = threading.Event()
+        HEARTBEAT_S = 20.0
+
+        def _heartbeat_loop():
+            while not stop_heartbeat.is_set():
+                if stop_heartbeat.wait(HEARTBEAT_S):
+                    return
+                try:
+                    with self._sse_write_lock:
+                        self.wfile.write(b": heartbeat\n\n")
+                        self.wfile.flush()
+                except (ConnectionResetError, BrokenPipeError, ValueError):
+                    return
+
+        hb = threading.Thread(target=_heartbeat_loop, daemon=True)
+        hb.start()
+
         try:
             while session.is_active():
                 pe = session.next_event()
@@ -1710,15 +1740,28 @@ class _Handler(BaseHTTPRequestHandler):
                     print(f"[server] math_graph.save failed: {e}")
         except (ConnectionResetError, BrokenPipeError):
             session.cancel()
+        finally:
+            stop_heartbeat.set()
 
     def _sse_emit(self, event: str, payload: dict) -> None:
+        # ``_sse_write_lock`` is created in ``_sse_stream`` so it
+        # exists for the streaming path; for any callers of
+        # ``_sse_emit`` outside that path (none today, but be
+        # defensive) we fall back to writing without a lock.
+        lock = getattr(self, "_sse_write_lock", None)
         try:
-            self.wfile.write(b"event: ")
-            self.wfile.write(event.encode("ascii"))
-            self.wfile.write(b"\ndata: ")
-            self.wfile.write(json.dumps(payload).encode("utf-8"))
-            self.wfile.write(b"\n\n")
-            self.wfile.flush()
+            if lock is not None:
+                lock.acquire()
+            try:
+                self.wfile.write(b"event: ")
+                self.wfile.write(event.encode("ascii"))
+                self.wfile.write(b"\ndata: ")
+                self.wfile.write(json.dumps(payload).encode("utf-8"))
+                self.wfile.write(b"\n\n")
+                self.wfile.flush()
+            finally:
+                if lock is not None:
+                    lock.release()
         except (ConnectionResetError, BrokenPipeError):
             raise
 
