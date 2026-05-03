@@ -55,3 +55,6 @@ old/
 
 # Pytest cache.
 .pytest_cache/
+
+# Inspector / smoke-test artifacts (regenerable, not source).
+health/
