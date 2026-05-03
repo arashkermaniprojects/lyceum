@@ -222,7 +222,34 @@ def _ingest(books_dir: str, book_id: str, pdf_path: str,
                   flush=True)
         # ``write_corpus(path, book)`` — argument order matters.
         write_corpus(corpus_json, book)
-        # Phase 2: math graph.
+
+        # Phase 2a: figures sidecar.  Must run BEFORE chapter_map so
+        # the chapter-wide LLM call has the figures list to enforce
+        # figure mentions in story_paragraphs.
+        _set_phase(books_dir, book_id, "extracting", "extracting figures")
+        try:
+            from tools.extract_book_figures import main as extract_figs_main
+            extract_figs_main([corpus_json])
+        except SystemExit:
+            pass            # the tool's main() can SystemExit cleanly
+        except Exception as e:
+            print(f"[ingest:{book_id}] figures sidecar warning: {e}",
+                  flush=True)
+
+        # Phase 2b: concept layer.  Used by chapter_map to fill cell
+        # gists in plain English.  LLM-driven; SLOW on long books.
+        _set_phase(books_dir, book_id, "building_concepts",
+                   "L0..L4 concept narratives")
+        try:
+            from tools.build_concept_layer import main as build_cc_main
+            build_cc_main([corpus_json])
+        except SystemExit:
+            pass
+        except Exception as e:
+            print(f"[ingest:{book_id}] concept layer warning: {e}",
+                  flush=True)
+
+        # Phase 2c: math graph.
         _set_phase(books_dir, book_id, "building_math_graph",
                    "scanning equations")
         try:
@@ -231,6 +258,20 @@ def _ingest(books_dir: str, book_id: str, pdf_path: str,
         except Exception as e:
             print(f"[ingest:{book_id}] math graph warning: {e}",
                   flush=True)
+
+        # Phase 2d: formula layer (F0/F1/F2 explanations).  LLM-driven
+        # per formula; SLOW.  Must run AFTER math graph.
+        _set_phase(books_dir, book_id, "building_formulas",
+                   "F0/F1/F2 explanations")
+        try:
+            from tools.build_formula_layer import main as build_fl_main
+            build_fl_main([corpus_json])
+        except SystemExit:
+            pass
+        except Exception as e:
+            print(f"[ingest:{book_id}] formula layer warning: {e}",
+                  flush=True)
+
         # Phase 3: per-chapter sub-pipeline.
         chapters = _list_chapter_nids(corpus_json)
         books_index.update_book(
@@ -252,7 +293,37 @@ def _ingest(books_dir: str, book_id: str, pdf_path: str,
                 done.append(nid)
                 books_index.update_book(books_dir, book_id,
                                         ingested_chapters=list(done))
-        # Phase 4: hand the new corpus to the running server.
+        # Phase 4: data-quality health check (Tier 1 inspector).
+        # Walks every sidecar and writes <stem>.health.json with
+        # per-check pass/fail/skip.  Cheap (<5 s) — always run.
+        _set_phase(books_dir, book_id, "checking",
+                   "running data-quality health check")
+        try:
+            from tools.data_quality_agent import run as dq_run
+            dq_run(corpus_json)
+        except Exception as e:
+            print(f"[ingest:{book_id}] health check warning: {e}",
+                  flush=True)
+
+        # Phase 5: math-fidelity agent (Tier 2).  ONLY run when the
+        # local VLM endpoint is reachable; otherwise every formula
+        # would classify as ``unverifiable`` and waste an hour.
+        try:
+            from tools.vlm_engine import vlm_reachable
+            if vlm_reachable(force=True):
+                _set_phase(books_dir, book_id, "checking",
+                           "math fidelity (VLM-backed)")
+                from tools.fidelity_agent import run as fid_run
+                fid_run(corpus_json, max_iters=2,
+                        apply_repairs=True, verbose=False)
+            else:
+                print(f"[ingest:{book_id}] VLM not reachable; "
+                      f"skipping fidelity_agent", flush=True)
+        except Exception as e:
+            print(f"[ingest:{book_id}] fidelity agent warning: {e}",
+                  flush=True)
+
+        # Phase 6: hand the new corpus to the running server.
         if register_with_server is not None:
             _set_phase(books_dir, book_id, "registering",
                        "registering with server")
