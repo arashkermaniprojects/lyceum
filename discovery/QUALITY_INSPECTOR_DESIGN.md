@@ -239,6 +239,31 @@ if it regresses.
     (data-build).  Tracked in inspector section A as
     **A12_sevim_diagram_label_quality** (new).
 
+28. **Story-paragraph prose contains raw LaTeX-like notation** —
+    rule 5 of ``_STORY_SYSTEM_PROMPT`` says "NO RAW LATEX —
+    variables get spoken names (``the smoothing parameter lambda``
+    not ``λ``)" but the LLM regularly violates it.  Symptom: a
+    cell's narrated prose contains ``Vm = ω_m^T X`` or
+    ``Z_m = σ(α_{0m} + α^T_m X)`` rendered as plain text inside
+    the chapter-zoom cell, alongside the SAME formula correctly
+    KaTeX-typeset in the canonical-formula card just below.  The
+    user sees broken-looking math TWICE per cell (once in prose,
+    once typeset).
+    Possible fixes:
+      * Tighten the prompt + re-prompt failed cells until the
+        violation rate is below threshold.
+      * Post-process: detect raw-LaTeX spans and either strip them
+        ("Vm = ω_m^T X" → "Vm") or wrap them in a KaTeX inline
+        renderer span.
+      * Or: render ALL prose math through KaTeX at the chalkboard,
+        treating ``$...$`` and Unicode-math runs as inline math.
+    *Check:* regex-scan every ``story_paragraph`` for any of:
+    ``\w+\^[A-Za-z0-9_{}]``, ``\w+_\{?[A-Za-z0-9]``,
+    ``[α-ωΑ-Ω∑∏∫∂∇√≤≥≈]`` outside a quoted citation, ``=``
+    surrounded by symbol-bearing tokens.  Flag ALL chapters where
+    >5 % of cells trip the regex.  Tracked in inspector section
+    A as **A13_story_paragraph_clean_prose** (new).
+
 ---
 
 ## II. Quality concerns we considered but kept as-is
@@ -363,6 +388,21 @@ A12. **SeVim diagram node-label quality**: every `<text>` node body
      stack before rendering, then re-run
      `tools/build_sevim_diagrams.py` for every chapter whose
      sidecar predates the patch.
+
+A13. **Story-paragraph clean prose** (no raw LaTeX-like notation):
+     rule 5 of `_STORY_SYSTEM_PROMPT` mandates that variable names
+     be spoken in plain English ("the parameter lambda", not "λ";
+     "V sub m equals omega sub m transpose X", not "Vm = ω_m^T X").
+     The LLM regularly violates it.  Check: for every
+     `story_paragraph` in every `<book>.chapter_map.<root>.json`,
+     regex-scan for raw-LaTeX-like signals — `\w+\^[A-Za-z0-9_{}]`,
+     `\w+_[A-Za-z0-9{]`, lone Greek letters
+     `[α-ωΑ-Ω∑∏∫∂∇√≤≥≈]`, equality signs surrounded by
+     symbol-bearing tokens.  Fail when more than 5 % of cells in a
+     chapter trip the regex.  Surfaces the cells where the prose
+     reads like broken LaTeX — fix is either a stronger prompt
+     pass, a post-strip step, or an inline-KaTeX renderer for the
+     prose pane.
 
 ### B. Render-layer (per visual op, online)
 
