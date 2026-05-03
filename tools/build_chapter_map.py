@@ -499,54 +499,191 @@ def _build_chapter_story(tree, *, math_graph,
               flush=True)
         return existing_paragraphs, []
 
-    section_lines = []
-    for s in sections:
-        gist = s["gist"] or "(no gist)"
-        kind = s["kind"].replace("_", " ")
-        num = s["number"] or ""
-        section_lines.append(
-            f"  {s['nid']}  ({kind} {num})  {s['title']}: {gist}"
+    def _build_user_prompt(sections_subset, *, total_sections):
+        section_lines = []
+        for s in sections_subset:
+            gist = s["gist"] or "(no gist)"
+            kind = s["kind"].replace("_", " ")
+            num = s["number"] or ""
+            section_lines.append(
+                f"  {s['nid']}  ({kind} {num})  {s['title']}: {gist}"
+            )
+        eq_lines = []
+        for e in eqs:
+            latex_short = (e["latex"][:120] + "…") if len(e["latex"]) > 120 \
+                          else e["latex"]
+            eq_lines.append(f"  {e['label']}: {latex_short}")
+        fig_lines = []
+        for f in figs:
+            cap = f["caption"] or "(no caption)"
+            fig_lines.append(
+                f"  {f['label']}  (owns: {f['home_nid']}): {cap}"
+            )
+        fig_block = ""
+        if fig_lines:
+            fig_block = (
+                "\n\nCITED FIGURES (every one whose owning nid is in "
+                "this batch must be named in the prose of its owning "
+                "section, with one short clause saying what the figure "
+                "shows):\n" + "\n".join(fig_lines)
+            )
+        partial_note = ""
+        if len(sections_subset) < total_sections:
+            partial_note = (
+                f" — this is a partial batch of {len(sections_subset)} of "
+                f"{total_sections} chapter sections; produce paragraphs "
+                f"only for the nids listed below"
+            )
+        return (
+            f"CHAPTER: {tree.title}\n\n"
+            f"PUNCH-LINE TO HONOR THROUGHOUT:\n  {tree.gist}\n\n"
+            f"SECTIONS (in narrative order{partial_note}):\n"
+            + "\n".join(section_lines) + "\n\n"
+            f"CITED EQUATIONS (every one whose owning nid is in this "
+            f"batch must be named in the prose, with its meaning "
+            f"explained in plain English right there):\n"
+            + "\n".join(eq_lines) + fig_block + "\n\n"
+            f"Write the essay as JSON: "
+            f'{{"paragraphs": {{"<nid>": "..."}}, '
+            f'"covered_equations": ["Equation N.M", ...], '
+            f'"covered_figures": ["Figure N.M", ...]}}.'
         )
-    eq_lines = []
-    for e in eqs:
-        latex_short = (e["latex"][:120] + "…") if len(e["latex"]) > 120 \
-                      else e["latex"]
-        eq_lines.append(f"  {e['label']}: {latex_short}")
 
-    fig_lines = []
-    for f in figs:
-        cap = f["caption"] or "(no caption)"
-        fig_lines.append(
-            f"  {f['label']}  (owns: {f['home_nid']}): {cap}"
+    def _call_for_subset(sections_subset, *, max_tokens):
+        prompt = _build_user_prompt(
+            sections_subset, total_sections=len(sections),
         )
-    fig_block = ""
-    if fig_lines:
-        fig_block = (
-            "\n\nCITED FIGURES (every one must be named in the prose of "
-            "its owning section, with one short clause saying what the "
-            "figure shows):\n" + "\n".join(fig_lines)
-        )
+        return _call_llm(_STORY_SYSTEM_PROMPT, prompt,
+                         max_tokens=max_tokens, temperature=0.5)
 
-    user_prompt = (
-        f"CHAPTER: {tree.title}\n\n"
-        f"PUNCH-LINE TO HONOR THROUGHOUT:\n  {tree.gist}\n\n"
-        f"SECTIONS (in narrative order — every nid must appear as a key "
-        f"in your output):\n" + "\n".join(section_lines) + "\n\n"
-        f"CITED EQUATIONS (every one of these must be named in the prose, "
-        f"with its meaning explained in plain English right there):\n"
-        + "\n".join(eq_lines) + fig_block + "\n\n"
-        f"Write the whole-chapter essay as JSON: "
-        f'{{"paragraphs": {{"<nid>": "..."}}, '
-        f'"covered_equations": ["Equation N.M", ...], '
-        f'"covered_figures": ["Figure N.M", ...]}}.'
-    )
+    def _call_chunked(sections_subset, *, max_tokens, depth=0):
+        """Try the call; on failure (None / no paragraphs / 400) split
+        the section list in half and recurse.  Returns the merged
+        ``out`` dict or ``None`` if every chunk failed."""
+        if not sections_subset:
+            return None
+        out = _call_for_subset(sections_subset, max_tokens=max_tokens)
+        good = (
+            isinstance(out, dict)
+            and isinstance(out.get("paragraphs"), dict)
+            and out.get("paragraphs")
+        )
+        if good:
+            return out
+        if len(sections_subset) <= 1 or depth >= 4:
+            print(f"  [chapter-story] chunk of {len(sections_subset)} "
+                  f"sections failed at depth={depth}; giving up on chunk",
+                  flush=True)
+            return None
+        mid = len(sections_subset) // 2
+        print(f"  [chapter-story] chunk of {len(sections_subset)} sections "
+              f"failed; retrying as {mid}+{len(sections_subset)-mid}",
+              flush=True)
+        a = _call_chunked(sections_subset[:mid],
+                          max_tokens=max(800, max_tokens // 2),
+                          depth=depth + 1)
+        b = _call_chunked(sections_subset[mid:],
+                          max_tokens=max(800, max_tokens // 2),
+                          depth=depth + 1)
+        merged_paragraphs: dict = {}
+        merged_eq: list = []
+        merged_fig: list = []
+        for sub in (a, b):
+            if not isinstance(sub, dict):
+                continue
+            p = sub.get("paragraphs") or {}
+            if isinstance(p, dict):
+                merged_paragraphs.update(p)
+            merged_eq.extend(sub.get("covered_equations") or [])
+            merged_fig.extend(sub.get("covered_figures") or [])
+        if not merged_paragraphs:
+            return None
+        return {
+            "paragraphs": merged_paragraphs,
+            "covered_equations": merged_eq,
+            "covered_figures": merged_fig,
+        }
+
     # The vLLM context for Qwen2.5-14B-AWQ is 8192.  The system prompt
     # is ~600 tokens, the user prompt with all cited equations + section
-    # gists is ~2500 tokens; we leave the rest for the response.
-    out = _call_llm(_STORY_SYSTEM_PROMPT, user_prompt,
-                    max_tokens=4200, temperature=0.5)
+    # gists is ~2500 tokens; we leave the rest for the response.  Long
+    # chapters (Ch.14 / Ch.18 in ESLII) overflow even that budget on
+    # the single-shot call — ``_call_chunked`` halves the section list
+    # on failure and recurses.  But empirically the LLM also TRUNCATES
+    # its output mid-chapter even when no error fires (it gives back a
+    # well-formed JSON with paragraphs for the first 6–8 sections and
+    # silently drops the rest).  So we PROACTIVELY split any chapter
+    # of more than ~12 sections into batches up front and merge.
+    BATCH_MAX = 12
+    if len(sections) > BATCH_MAX:
+        merged_paragraphs: dict = {}
+        merged_eq: list = []
+        merged_fig: list = []
+        n_batches = (len(sections) + BATCH_MAX - 1) // BATCH_MAX
+        size = (len(sections) + n_batches - 1) // n_batches
+        print(f"[chapter-map] {len(sections)} sections > {BATCH_MAX} — "
+              f"splitting into {n_batches} batches of ≈{size}",
+              flush=True)
+        for i in range(0, len(sections), size):
+            batch = sections[i:i + size]
+            sub = _call_chunked(batch, max_tokens=3200)
+            if isinstance(sub, dict):
+                p = sub.get("paragraphs") or {}
+                if isinstance(p, dict):
+                    merged_paragraphs.update(p)
+                merged_eq.extend(sub.get("covered_equations") or [])
+                merged_fig.extend(sub.get("covered_figures") or [])
+        out = {
+            "paragraphs": merged_paragraphs,
+            "covered_equations": merged_eq,
+            "covered_figures": merged_fig,
+        } if merged_paragraphs else None
+    else:
+        out = _call_chunked(sections, max_tokens=4200)
+
+    # Fill-missing retry: the LLM tends to drop "boring" sections
+    # (intros, bibliographic notes, exercises) even when explicitly
+    # asked to cover all nids.  Find any section that still lacks a
+    # paragraph (in either ``out`` OR ``existing_paragraphs``) and
+    # ask for them in a smaller, focused call.
+    if isinstance(out, dict):
+        already_covered = set(
+            (out.get("paragraphs") or {}).keys()
+        ) | set((existing_paragraphs or {}).keys())
+        missing_sections = [s for s in sections
+                            if s["nid"] not in already_covered]
+        if missing_sections:
+            print(f"[chapter-map] retrying {len(missing_sections)} "
+                  f"sections the LLM skipped on the first pass",
+                  flush=True)
+            # Up to 2 retry rounds, each batch sized to BATCH_MAX.
+            for _round in range(2):
+                if not missing_sections:
+                    break
+                still_missing: list = []
+                for i in range(0, len(missing_sections), BATCH_MAX):
+                    batch = missing_sections[i:i + BATCH_MAX]
+                    sub = _call_chunked(batch, max_tokens=2400)
+                    if not isinstance(sub, dict):
+                        still_missing.extend(batch)
+                        continue
+                    p = sub.get("paragraphs") or {}
+                    if isinstance(p, dict):
+                        out["paragraphs"].update(p)
+                        out["covered_equations"] = (
+                            (out.get("covered_equations") or [])
+                            + (sub.get("covered_equations") or [])
+                        )
+                        out["covered_figures"] = (
+                            (out.get("covered_figures") or [])
+                            + (sub.get("covered_figures") or [])
+                        )
+                    for s in batch:
+                        if s["nid"] not in p:
+                            still_missing.append(s)
+                missing_sections = still_missing
     if not isinstance(out, dict):
-        print("  [chapter-story] LLM returned no JSON; "
+        print("  [chapter-story] all chunks failed; "
               "keeping any existing paragraphs", flush=True)
         return existing_paragraphs, [e["label"] for e in eqs]
     paragraphs = out.get("paragraphs") or {}

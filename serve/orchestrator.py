@@ -3630,25 +3630,79 @@ _PYMUPDF_SUM_GLYPHS = {
 }
 
 # ``<upper> X <lower>`` where upper is a single capital letter or a
-# small number and lower is ``<var>=<expr>`` or ``<var>``.  The lower
-# bound is required to disambiguate prose like "set X" from a Σ glyph.
+# small number and lower is ``<var>=<expr>``.  The lower bound is
+# required to disambiguate prose like "set X" from a Σ glyph.
 _VSTACK_RE = re.compile(
     r"\b([A-Z]|\d{1,3})\s+([XYR])\s+([a-zA-Z]\w*\s*=\s*[^\s,;]{1,12})"
 )
+
+# ``<X-glyph> <indices>`` with a multi-index list (``k,m``) or a single
+# index (``k``) and NO upper bound.  Common in penalty-style notation
+# ``\sum_{k,m} \beta^2_{km}``.  We require:
+#   * a comma-separated list of two or more single letters, OR
+#   * a single letter followed immediately by a math/Greek-bearing
+#     continuation (the integrand) so we don't repair prose like
+#     ``the set X k holds``.
+# Greek lowercase letters (α-ω, including ``ℓ``) are accepted as
+# index names.  ``\b`` before X / Y / R prevents matching inside a
+# longer token like ``XYZ``.
+_INDEX_CHAR = r"(?:[a-zA-Z]|[α-ω]|ℓ)"
+_VSTACK_NOUPPER_RE = re.compile(
+    rf"\b([XYR])\s+({_INDEX_CHAR}(?:,{_INDEX_CHAR})+)"
+    r"(?=\s+(?:\\?[a-zA-Zα-ω]|\d|\\))"
+)
+
+# Transpose-with-subscript: PyMuPDF lays out ``α^T_m X`` as
+#   αT
+#   mX
+# which after newline-flatten reads ``αT mX``.  The ``T`` is the
+# superscript, the lowercase letter just after the whitespace is the
+# subscript, and the immediately following uppercase letter is the
+# matrix/vector the transposed object multiplies.  Convert to
+# ``\alpha_m^T X`` (LaTeX-style; KaTeX renders fine).
+_GREEK_LOWER_CHARS = "αβγδεζηθικλμνξοπρςστυφχψω"
+_TRANSPOSE_SUB_RE = re.compile(
+    r"(\\(?:alpha|beta|gamma|delta|epsilon|zeta|eta|theta|iota|kappa|"
+    r"lambda|mu|nu|xi|omicron|pi|rho|sigma|tau|upsilon|phi|chi|psi|omega)"
+    rf"|[{_GREEK_LOWER_CHARS}]|[A-Za-z])T\s+([a-z])\s*([A-Z])\b"
+)
+
+# Subscript-T-without-space: ``β T\nk Z`` → ``βT k Z`` (no space
+# between glyph and T).  Same fix shape but with the variable possibly
+# also broken across the next line, fused on flatten as a single
+# token like ``mX`` or ``kZ``.  Already covered by _TRANSPOSE_SUB_RE
+# above when there's whitespace between T and the subscript.
 
 
 def _repair_pymupdf_vstack(text: str) -> str:
     """Fold PyMuPDF's vertical \\sum/\\prod/\\int glyph layout into
     inline LaTeX so the math-fragment detector keeps reading through
     a multi-line equation instead of stopping at the first plain-
-    capital bound."""
-    def _sub(m: "re.Match[str]") -> str:
+    capital bound.  Also repairs the transpose-with-subscript glyph
+    layout PyMuPDF emits for ``\\alpha^T_m`` and friends."""
+    def _sub_full(m: "re.Match[str]") -> str:
         upper, glyph, lower = m.group(1), m.group(2), m.group(3)
         cmd = _PYMUPDF_SUM_GLYPHS.get(glyph, r"\sum")
         return f"{cmd}_{{{lower}}}^{{{upper}}}"
-    # Run twice so nested ``N X i=1 K X k=1`` collapses fully.
-    out = _VSTACK_RE.sub(_sub, text)
-    out = _VSTACK_RE.sub(_sub, out)
+
+    def _sub_noupper(m: "re.Match[str]") -> str:
+        glyph, indices = m.group(1), m.group(2)
+        cmd = _PYMUPDF_SUM_GLYPHS.get(glyph, r"\sum")
+        return f"{cmd}_{{{indices}}}"
+
+    def _sub_transpose(m: "re.Match[str]") -> str:
+        head, sub, var = m.group(1), m.group(2), m.group(3)
+        return f"{head}_{{{sub}}}^{{T}} {var}"
+
+    # Pass 1: ``<upper> X <lower=expr>`` (the bounded form).
+    out = _VSTACK_RE.sub(_sub_full, text)
+    out = _VSTACK_RE.sub(_sub_full, out)
+    # Pass 2: ``X <indices>`` with no upper bound.  Run after the
+    # bounded form so we don't match the lower-bound's leading char.
+    out = _VSTACK_NOUPPER_RE.sub(_sub_noupper, out)
+    out = _VSTACK_NOUPPER_RE.sub(_sub_noupper, out)
+    # Pass 3: transpose with subscript.
+    out = _TRANSPOSE_SUB_RE.sub(_sub_transpose, out)
     return out
 
 
