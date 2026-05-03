@@ -264,6 +264,66 @@ if it regresses.
     >5 % of cells trip the regex.  Tracked in inspector section
     A as **A13_story_paragraph_clean_prose** (new).
 
+29. **Stale figure highlight when the active cell's prose names a
+    different figure** — bug-26 (figure highlight) was fixed in
+    commit ``bded974`` to PERSIST until a different figure-class
+    label is mentioned, but the narration is per-clause: if the
+    active clause is "To combat overfitting," and the NEXT clause
+    in the same paragraph is "techniques like weight decay can be
+    employed, as shown in Figure 11.5", the highlight stays on
+    whatever figure was last named (e.g. Figure 11.3 from §11.3)
+    until the narrator reaches the "Figure 11.5" word.  The user,
+    reading along with the cell's prose, sees "Figure 11.5" in
+    the visible text but the highlight on Figure 11.3 — looks
+    like a sync bug even though it is "the highlight is one
+    clause behind the prose".
+    Two reasonable fixes:
+      * On every ``home_nid`` transition (cell change), pre-scan
+        the cell's full ``story_paragraph`` for figure mentions
+        and queue them so the highlight switches at the right
+        word boundary, ahead of the current spoken token.
+      * Or simpler: when the cell changes, set
+        ``_activeFigureLabels`` to the FIRST figure label found
+        anywhere in that cell's prose, regardless of which clause
+        the narrator is currently on.  The user reads ahead of
+        the narrator anyway.
+    *Check:* end-to-end harness — when the active cell's
+    ``story_paragraph`` mentions exactly one figure label by name,
+    that figure must be the highlighted card from the moment the
+    cell becomes active.  Tracked in inspector section A as
+    **A14_figure_highlight_aligns_with_active_cell** (new).
+
+30. **SeVim-diagram legend is incomplete relative to the diagram
+    it sits next to** — the ARROW GUIDE panel at bottom-left
+    catalogues a fixed set of edge types (``contains``,
+    ``is a kind of``, ``causes / leads to``, ``requires``,
+    ``equals``, ``maps to``, ``element of``, ``part of``,
+    ``attribute of``, ``used for``, ``measures``,
+    ``approximately equal``, ``subset of``, ``connects``).  But
+    individual diagrams render edge primitives the legend does
+    NOT name — e.g. the §11.5.2 Overfitting diagram contains a
+    large grey wedge / triangle from "regularization term" toward
+    "overfitting" and another from "neural network" that the
+    legend cannot explain.  The reader sees an unfamiliar glyph
+    with no caption.
+    Two paths:
+      * Build the legend DYNAMICALLY from the set of distinct
+        ``data-eid`` / ``data-rel`` attributes the active diagram
+        SVG carries, only listing relations actually used in this
+        diagram.  ``serve/static/index.html:_renderDiagramLegend``
+        already exists; it just needs to harvest more relation
+        kinds.
+      * Add the missing primitives (the wedge / "blocker"
+        relation) to the master legend.  Less flexible — a future
+        ``sevim/`` change that adds a new primitive will silently
+        drift the legend out of date again.
+    *Check:* parse every SeVim diagram SVG, enumerate its edge
+    primitive kinds (by ``class``, ``data-rel``, marker shape,
+    stroke-dasharray pattern), and assert each kind has a
+    matching entry in the legend rendered alongside it.  Tracked
+    in inspector section A as **A15_diagram_legend_complete**
+    (new).
+
 ---
 
 ## II. Quality concerns we considered but kept as-is
@@ -403,6 +463,37 @@ A13. **Story-paragraph clean prose** (no raw LaTeX-like notation):
      reads like broken LaTeX — fix is either a stronger prompt
      pass, a post-strip step, or an inline-KaTeX renderer for the
      prose pane.
+
+A14. **Figure highlight aligns with active cell** (not with the
+     last spoken figure word): when the active chapter-zoom cell's
+     `story_paragraph` mentions exactly one figure label, that
+     figure must be the highlighted card from the moment the cell
+     becomes the active one — without waiting for the narrator to
+     reach the figure-label word.  When the prose mentions
+     multiple figures (e.g. Figure 11.4 and Figure 11.5 in §11.5),
+     the highlight should walk through them at the word boundary
+     where each is named.  Live-runtime check (Tier 3 e2e) +
+     offline data check (Tier 1): for every cell, parse its
+     story_paragraph, extract every `figure \d+\.\d+` mention, and
+     verify the runtime mapping table from cell.nid → ordered list
+     of figure mentions agrees with what the page assigns to
+     `_activeFigureLabels` at each word.
+
+A15. **Diagram legend complete** for every SeVim diagram: the
+     ARROW GUIDE panel rendered alongside a chapter-zoom cell
+     diagram must name EVERY visual edge primitive used in that
+     diagram — e.g. solid arrow, dashed UML triangle, parallel-
+     line equivalence, the grey wedge / "blocker" shape — and
+     nothing more.  Static legends drift out of date when the
+     SeVim graph generator adds a new primitive; the runtime
+     legend should rebuild from the set of distinct edge classes
+     in the active SVG.  Check (offline): for every
+     `<book>.sevim_diagrams.<chapter>.json`, enumerate the edge
+     primitive kinds present (by `class` / `data-rel` / marker
+     shape / dasharray) and assert each has a matching entry in
+     the master legend; flag the diagram otherwise.  Check
+     (Tier 3 e2e): `_renderDiagramLegend()` must produce one row
+     per distinct primitive in the currently-rendered SVG.
 
 ### B. Render-layer (per visual op, online)
 
