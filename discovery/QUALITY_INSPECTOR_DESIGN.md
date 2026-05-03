@@ -324,6 +324,76 @@ if it regresses.
     in inspector section A as **A15_diagram_legend_complete**
     (new).
 
+31. **SeVim-diagram node label font size is fixed; long labels
+    wrap awkwardly inside fixed-width boxes** — boxes are sized
+    by the renderer with one font-size for the whole diagram, so
+    a label like "matrix transposition T" wraps to three lines
+    ("matrix" / "transposition" / "T"), "activation function gm"
+    wraps to "activation" / "function" / "gm", "input data mxi"
+    wraps to "input data" / "mxi" — the trailing
+    one-letter or two-letter token sits on its own line, which
+    looks like a typographic accident.  Reader can't tell whether
+    "T" is part of the label or a separate floating marker.
+    Three reasonable approaches:
+      * Auto-shrink font when the longest line in any box exceeds
+        a width threshold (typical CSS-canvas trick: measure
+        text, scale font down to fit ≤ 2 lines).
+      * Auto-grow boxes to fit the label at the chosen font size,
+        making the diagram's bounding box wider.
+      * Keep the label semantically structured: render the head
+        (``matrix transposition``) at full size and the trailing
+        symbol (``T``) as a small superscript / subscript on the
+        head's last word.  Requires the SeVim graph to carry the
+        sub/super relationship in metadata, not as a plain string.
+    *Check:* parse every SeVim diagram SVG; for each ``<text>``
+    node, measure the (rendered) width versus its containing
+    ``<rect>`` width and the rendered height versus the
+    containing rect height.  Flag every node where (a) the text
+    overflows the rect OR (b) the text wraps to ≥ 3 lines OR
+    (c) the last line carries ≤ 2 characters (the "orphan
+    trailing symbol" case the user complained about).  Tracked
+    in inspector section A as **A16_diagram_label_typography**
+    (new).
+
+32. **Pure-regex formula repair leaves semantic gaps; need a
+    math-aware check** — the to_latex / repair stack catches
+    glued tokens like ``Xtr`` → ``X_{tr}`` and ``ytr`` →
+    ``y_{tr}`` (2-char letter tail), but stops short of 3-char
+    tails because that boundary is shared with English-word
+    splitting risk (``maps``, ``over``, ``loss``).  Result:
+    ``Equation 11.20`` renders as ``r(Ynew|Xnew, X_{tr}, y_{tr})``
+    — same context, different conventions, ``Ynew`` and ``Xnew``
+    visibly NOT subscripted while their "training" siblings
+    ``X_{tr}`` and ``y_{tr}`` are.  No regex can decide this
+    alone — ``new`` is a real English word AND a legitimate
+    subscript depending on context.
+    The right check is semantic / math-aware:
+
+      * For each formula in ``<book>.math_graph.json``, render the
+        ``latex`` field through KaTeX to PNG (or rely on the
+        existing client-side render), and ask the local
+        Qwen2.5-VL endpoint at :8004 "does this rendered formula
+        faithfully match the source PDF crop at this page+bbox?".
+        Round-trip: PDF crop ↔ extracted LaTeX ↔ rendered image,
+        with a binary same/different verdict.
+      * Variable-naming consistency: maintain a per-book table of
+        every variable's preferred typesetting (``X_{new}`` vs
+        ``Xnew``) inferred from the contexts where it IS clearly
+        subscripted, then flag the formulas where the same
+        variable name appears in the OTHER form.
+      * For each formula, also check operator-name conversion
+        (``log`` → ``\log``, ``arg max`` → ``\arg\max``,
+        ``sin`` → ``\sin``) which the regex pass already does
+        but with known gaps (``argmaxk`` etc.).
+
+    Cost: one VLM call per formula (~700 ms), so an offline
+    sweep of ESLII's 1,723 formulas is ~20 min — acceptable as a
+    background pass.  The page-narration path doesn't need it
+    online; the offline data-quality agent should run it once
+    per build of the math graph.
+    Tracked in inspector section A as
+    **A17_formula_semantic_fidelity** (new).
+
 ---
 
 ## II. Quality concerns we considered but kept as-is
@@ -494,6 +564,40 @@ A15. **Diagram legend complete** for every SeVim diagram: the
      the master legend; flag the diagram otherwise.  Check
      (Tier 3 e2e): `_renderDiagramLegend()` must produce one row
      per distinct primitive in the currently-rendered SVG.
+
+A16. **Diagram label typography**: for every SeVim diagram
+     node-label `<text>` element, the rendered text must fit its
+     containing `<rect>` cleanly — no overflow past the rect
+     edges, no wrap to ≥ 3 lines, no orphaned 1-2 character last
+     line ("matrix transposition / T", "activation function /
+     gm", "input data / mxi" are the user's reported cases).
+     Check (offline): walk every diagram SVG, measure each
+     text-in-rect using a server-side font-metrics lookup
+     (CSS font dimensions are deterministic given the font + size),
+     and flag any (text, rect) pair that violates the three
+     rules above.  Fix paths in the corresponding bug entry
+     (#31).  Tracked here so the data-quality agent can score
+     diagram readability without launching a browser.
+
+A17. **Formula semantic fidelity** (math-aware, VLM-backed): for
+     every formula in `<book>.math_graph.json`, the rendered LaTeX
+     must faithfully match the source PDF crop at the formula's
+     `home_nid` page + bbox.  Implementation: render the formula
+     through KaTeX to PNG, crop the corresponding region from the
+     source PDF, send both images to the local Qwen2.5-VL
+     endpoint at :8004 with prompt "do these two images show the
+     same mathematical statement, modulo formatting?  yes/no with
+     a one-line reason".  Fail every formula the VLM marks as
+     different.  Cost ≈ 700 ms per formula; ~20 min sweep on
+     1,700 formulas.  This is the only check that catches
+     semantic gaps the regex / KaTeX-validity passes miss —
+     subscript inconsistencies (``Xnew`` vs ``X_{new}``),
+     dropped operator commands, missing parentheses, swapped
+     bounds, etc.  Sister-check inside the same agent: variable
+     naming consistency — if the same variable appears in both
+     ``Xnew`` and ``X_{new}`` form across formulas in the same
+     chapter, flag the inconsistency for normalisation.  Local
+     only — the VLM lives on the user's hardware.
 
 ### B. Render-layer (per visual op, online)
 
