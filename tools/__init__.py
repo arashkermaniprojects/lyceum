@@ -45,4 +45,10 @@ Every script under this package is safe to run standalone:
 
 See the manuscript's ``Auto-pipeline on book upload`` section for the
 exact phase ordering applied to a freshly uploaded PDF.
+
+Citation
+--------
+If you use any of these tools in your research, please cite the
+Lyceum paper.  See ``CITATION.cff`` and ``NOTICE`` at the repository
+root.
 """

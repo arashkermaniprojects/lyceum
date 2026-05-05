@@ -14,6 +14,19 @@ Under the following terms:
 Full license text: https://creativecommons.org/licenses/by-nc/4.0/legalcode
 
 -------------------------------------------------------------------------------
-Note: This license applies while the associated paper is under review.
-Upon acceptance and publication, the license will be updated to MIT.
+ATTRIBUTION REQUIREMENT (CC BY-NC 4.0 §3(a))
+
+The Attribution requirement of CC BY-NC 4.0 is satisfied for this work
+ONLY by preserving the NOTICE file at the repository root, which
+specifies the academic paper that must be cited.  Any reuse, adaptation,
+or redistribution of this software --- in whole or in part --- must
+include the citation of the Lyceum paper as set out in NOTICE.
+
+This citation requirement survives any future change of licence.
+-------------------------------------------------------------------------------
+Note: This licence applies while the associated paper is under review.
+Upon acceptance and publication, the licence will be updated to a
+permissive open-source licence (MIT or Apache-2.0).  The citation
+requirement carried by NOTICE remains in force across that
+relicensing.
 -------------------------------------------------------------------------------

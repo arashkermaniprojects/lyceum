@@ -7,6 +7,11 @@ Public API:
     book = book.load_corpus("textbook.json")
     rs = resolve(book, "matrix", current_nid="b/ch8/s8.4")
     svg = render_resolved(rs)
+
+Citation
+--------
+If you use this package in your research, please cite the Lyceum
+paper.  See ``CITATION.cff`` and ``NOTICE`` at the repository root.
 """
 from .resolver import (
     ResolvedShape, resolve, render_resolved,

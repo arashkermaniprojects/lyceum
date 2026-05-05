@@ -1,5 +1,12 @@
 # Lyceum
 
+> **If you use this software, the math-semantic-graph design, the
+> evaluation harness, or any of the per-book artefacts in your
+> research, you MUST cite the accompanying paper.**  See the
+> [Citation](#citation) section below and the [`NOTICE`](NOTICE) file
+> at the repository root.  This is a condition of the licence (see
+> [`LICENSE`](LICENSE); CC BY-NC 4.0 requires attribution).
+
 **A fully-local multimodal system that turns a static mathematics or
 statistics PDF textbook into an interactive, narrated whiteboard.**
 
@@ -262,13 +269,15 @@ This repository is licensed under the
 [Creative Commons Attribution–NonCommercial 4.0 International
 license (CC BY-NC 4.0)](LICENSE) while the accompanying paper is
 under review.  Upon paper acceptance the license will be updated to
-MIT.
+a permissive open-source licence; the citation requirement carried
+by the [`NOTICE`](NOTICE) file will remain in force across that
+relicensing.
 
 You are free to share and adapt the material for non-commercial
-purposes with appropriate attribution.  **Please cite the paper**
-(see the [Citation](#citation) section above) in any work that uses
-this code, the math semantic graph design, the evaluation harness,
-or any of the per-book artefacts.
+purposes **with appropriate attribution**.  CC BY-NC 4.0 §3(a)
+makes preserving the attribution notice in [`NOTICE`](NOTICE) part
+of the licence terms; the academic citation requirement (see the
+[Citation](#citation) section above) is therefore not optional.
 
 ---
 

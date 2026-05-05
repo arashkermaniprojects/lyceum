@@ -14,6 +14,11 @@ End-to-end usage:
     book.concepts = extract_concepts(book)
     book.cross_refs = extract_cross_refs(book)
     write_corpus("textbook.json", book)
+
+Citation
+--------
+If you use this package in your research, please cite the Lyceum
+paper.  See ``CITATION.cff`` and ``NOTICE`` at the repository root.
 """
 from .ir import (
     Book, BookNode, ConceptEntry, ConceptTemplate, CrossRef, FigureRef,

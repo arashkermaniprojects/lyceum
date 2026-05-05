@@ -24,6 +24,11 @@ session:
 The runtime is fully local: every model call lands on the user's own
 machine (vLLM endpoints + Kokoro TTS subprocess), and no external
 URL is reachable from any code path under ``serve``.
+
+Citation
+--------
+If you use this package in your research, please cite the Lyceum
+paper.  See ``CITATION.cff`` and ``NOTICE`` at the repository root.
 """
 
 from .orchestrator import Orchestrator, StreamEvent

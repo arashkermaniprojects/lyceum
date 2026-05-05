@@ -9,4 +9,9 @@ and never touch this package directly.  ``service`` exists so a
 multi-book operator can layer book-selection, active-book switching,
 and shared-state warm-up on top of the per-session orchestrator
 without modifying the core server.
+
+Citation
+--------
+If you use this package in your research, please cite the Lyceum
+paper.  See ``CITATION.cff`` and ``NOTICE`` at the repository root.
 """

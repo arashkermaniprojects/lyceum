@@ -19,6 +19,14 @@ graph builder (``tools/build_math_graph``).
 
 See ``sevim/README.md`` for the standalone story and the SeVim Zenodo
 preprint (``10.5281/zenodo.20011107``) for the citation form.
+
+Citation
+--------
+Work that uses the SeVim pipeline directly should cite the SeVim
+preprint above.  Work that uses the bundled Lyceum runtime
+(orchestrator, math semantic graph, evaluation harness) should ALSO
+cite the Lyceum paper --- see ``CITATION.cff`` and ``NOTICE`` at the
+repository root.
 """
 
 __version__ = "0.1.0"

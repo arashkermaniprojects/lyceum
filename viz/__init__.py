@@ -15,6 +15,11 @@ All generators are
 
 Local-only by policy: no Anthropic / OpenAI / external API is used here.
 Optional VLM inspection talks to a *local* Qwen2.5-VL vLLM endpoint.
+
+Citation
+--------
+If you use this package in your research, please cite the Lyceum
+paper.  See ``CITATION.cff`` and ``NOTICE`` at the repository root.
 """
 from .registry import find_visualization, list_topics
 from .inspector import inspect_svg, InspectionResult

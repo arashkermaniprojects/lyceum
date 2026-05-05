@@ -1,0 +1,74 @@
+============================================================================
+Lyceum --- attribution and citation notice
+============================================================================
+
+This software accompanies the academic paper
+
+    Kermani Kolankeh, A. and Zgheib, R.
+    "Lyceum: a fully-local multimodal system for narrated visualisation
+     of mathematical textbooks."
+    <TO BE FILLED IN ON ACCEPTANCE> (year, volume, issue, pages, DOI).
+
+Anyone who reuses this software, the math-semantic-graph design, the
+evaluation harness, or any of the per-book artefacts --- whether
+verbatim, in adapted form, or as the basis for further work --- must
+cite the paper above.  This is a condition of the licence
+(see LICENSE; CC BY-NC 4.0 requires attribution).
+
+Required citation (BibTeX placeholder; replace the bracketed fields
+with the published reference once the paper is accepted):
+
+    @article{lyceum2026,
+      title    = {{Lyceum}: a fully-local multimodal system for
+                  narrated visualisation of mathematical textbooks},
+      author   = {Kermani Kolankeh, Arash and Zgheib, Rita},
+      journal  = {<TO BE FILLED IN ON ACCEPTANCE>},
+      year     = {<YEAR>},
+      volume   = {<VOLUME>},
+      number   = {<ISSUE>},
+      pages    = {<PAGES>},
+      doi      = {<DOI>},
+      url      = {<URL>}
+    }
+
+Please preserve this NOTICE file in any redistribution.
+
+----------------------------------------------------------------------------
+Authors
+----------------------------------------------------------------------------
+
+  Arash Kermani Kolankeh   ORCID 0009-0003-6494-414X
+  Rita Zgheib              ORCID 0000-0001-6301-8783
+
+  Canadian University Dubai
+  Contact: arash.kolankeh@cud.ac.ae
+
+----------------------------------------------------------------------------
+Bundled SeVim diagram engine
+----------------------------------------------------------------------------
+
+The ``sevim/`` sub-package is a separately citable scientific
+contribution.  Work that uses the SeVim pipeline directly
+(``tools/build_sevim_diagrams``, ``viz/render``, the math-semantic
+graph builder under ``sevim/math_graph*.py``) should ALSO cite SeVim:
+
+    Kermani Kolankeh, A. (2026).
+    "SeVim: Deterministic Semantic-to-Visual Mapping for Educational
+     Diagrams."  Zenodo.  https://doi.org/10.5281/zenodo.20011107
+
+See ``sevim/README.md`` and ``sevim/CITATION.cff`` for the standalone
+description.
+
+----------------------------------------------------------------------------
+Working corpus
+----------------------------------------------------------------------------
+
+The working corpus referenced throughout the paper is
+
+    Hastie, T., Tibshirani, R. and Friedman, J.
+    "The Elements of Statistical Learning" (2nd ed., corrected 12th
+    printing).  Springer, 2017.
+
+The corpus is copyrighted and is NOT redistributed in this repository.
+The publisher's freely available author-hosted copy is referenced in
+the paper's bibliography.
