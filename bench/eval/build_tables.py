@@ -17,10 +17,15 @@ sys.path.insert(0, str(THIS.parents[2]))                 # repo root
 from bench.eval._common import RESULTS, TABLES, latex_escape         # noqa: E402
 
 # The paper expects ``\input{tables/m1_routing}`` etc. to resolve from
-# inside ``paper/``; mirror every fragment to ``paper/tables/`` after
-# writing to ``bench/eval/tables/`` so the eval harness remains the
-# authoritative source and the paper build stays self-contained.
-PAPER_TABLES = TABLES.parents[2] / "paper" / "tables"
+# inside ``paper/``.  When the manuscript working tree exists (i.e.
+# the author is running this from their local checkout that also has
+# the paper sources) we mirror every fragment to ``paper/tables/`` so
+# the paper build stays self-contained.  ``paper/`` is gitignored in
+# the public code repository, so for users who cloned the code repo
+# alone the mirror is silently skipped and the canonical fragments in
+# ``bench/eval/tables/`` are still produced.
+_PAPER_DIR = TABLES.parents[2] / "paper"
+PAPER_TABLES = _PAPER_DIR / "tables" if _PAPER_DIR.is_dir() else None
 
 
 def fmt_pct(x: float) -> str:
@@ -39,10 +44,12 @@ def write(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
     print(f"[tables] wrote {path.relative_to(THIS.parents[2])}")
-    # Mirror to paper/tables/ for the paper's \input{} resolution.
-    paper_path = PAPER_TABLES / path.name
-    paper_path.parent.mkdir(parents=True, exist_ok=True)
-    paper_path.write_text(content, encoding="utf-8")
+    # Mirror to paper/tables/ only if a local paper working tree exists
+    # (gitignored in the public code repository).
+    if PAPER_TABLES is not None:
+        paper_path = PAPER_TABLES / path.name
+        paper_path.parent.mkdir(parents=True, exist_ok=True)
+        paper_path.write_text(content, encoding="utf-8")
 
 
 # ---------------------------------------------------------------------------

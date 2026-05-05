@@ -126,10 +126,14 @@ record so GitHub's "Cite this repository" button works end-to-end.
 ├── tests/            705 deterministic unit / system tests
 ├── discovery/        Design notes (math-graph plan, inspector design,
 │                     visual relation QA gallery)
-├── paper/            Manuscript source (LaTeX) + figures + bibliography
-└── books/            Per-book artefacts (corpus JSON, math graph, figures
-                      sidecar, chapter-map sidecars, …)  --- gitignored
-                      because the source PDFs are copyrighted
+└── books/            Per-book artefacts (corpus JSON, math graph,
+                      figures sidecar, chapter-map sidecars, …) ---
+                      gitignored because the source PDFs are
+                      copyrighted
+
+The manuscript source (LaTeX) lives in a **separate paper repository**
+and is not included in this code repository; numerical claims in the
+paper are reproduced from this code base via ``bench/eval/``.
 ```
 
 ---
