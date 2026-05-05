@@ -1521,11 +1521,11 @@ def make_vllm_backend(
 ) -> Optional[SynthBackend]:
     """Construct a synth backend that calls a local vLLM server.
 
-    The vLLM server speaks the OpenAI Chat Completions API at ``base_url``;
-    this is the pattern shared with the user's other agentic_systems
-    projects.  Start the server with::
-
-        bash /home/ara/vllm-restart/start_vllm_8000_qwen_text.sh
+    The vLLM server speaks the OpenAI Chat Completions API at
+    ``base_url``.  Start a vLLM instance hosting your chosen text-LLM
+    on localhost (see https://docs.vllm.ai for the canonical
+    invocation), or set the ``VLLM_BASE_URL`` environment variable to
+    point at an existing endpoint.
 
     Returns None when the endpoint is unreachable, so callers can fall
     back to retrieval-only synthesis.

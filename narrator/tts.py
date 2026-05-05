@@ -2,11 +2,10 @@
 
 Two backends, selected at construction time:
 
-1.  **KokoroTTS** — wraps a long-lived ``kokoro_onnx`` subprocess.  Each
-    request is one JSON line over stdin; each response is one JSON line on
-    stdout.  Mirror's the existing TextVis-Game / TextVis-3D-Interactive
-    pattern (``agents/kokoro-tts-server.py``).  Audio is returned as
-    base64-encoded WAV bytes.
+1.  **KokoroTTS** — wraps a long-lived ``kokoro_onnx`` subprocess.
+    Each request is one JSON line over stdin; each response is one
+    JSON line on stdout.  Audio is returned as base64-encoded WAV
+    bytes.
 
 2.  **NullTTS** — emits silent WAV of the correct estimated duration with
     linearly-interpolated word timestamps.  Lets the rest of the pipeline
@@ -26,6 +25,7 @@ import json
 import os
 import struct
 import subprocess
+import sys
 import threading
 import wave
 from dataclasses import dataclass, field
@@ -158,17 +158,13 @@ class NullTTS(_BackendBase):
 # KokoroTTS — long-lived subprocess
 # ---------------------------------------------------------------------------
 
-# Default paths: pull the same models that TextVis-Game uses.  Override via
-# env vars if your install lives elsewhere.
-_DEFAULT_MODEL = os.environ.get(
-    "KOKORO_MODEL",
-    "/home/ara/Documents/Programming/agentic_systems/TextVis 3D/.kokoro-models/kokoro-v1.0.onnx",
-)
-_DEFAULT_VOICES = os.environ.get(
-    "KOKORO_VOICES",
-    "/home/ara/Documents/Programming/agentic_systems/TextVis 3D/.kokoro-models/voices-v1.0.bin",
-)
-_DEFAULT_VOICE = os.environ.get("KOKORO_VOICE", "af_heart")
+# Kokoro model + voices + worker-script paths.  Override via env vars
+# (KOKORO_MODEL, KOKORO_VOICES, KOKORO_WORKER) if your install lives
+# elsewhere.  See https://github.com/hexgrad/kokoro for upstream
+# release artefacts.
+_DEFAULT_MODEL  = os.environ.get("KOKORO_MODEL",  "")
+_DEFAULT_VOICES = os.environ.get("KOKORO_VOICES", "")
+_DEFAULT_VOICE  = os.environ.get("KOKORO_VOICE",  "af_heart")
 
 
 def list_kokoro_voices(voices_path: str = _DEFAULT_VOICES) -> list[str]:
@@ -192,9 +188,9 @@ def list_kokoro_voices(voices_path: str = _DEFAULT_VOICES) -> list[str]:
 class KokoroTTS(_BackendBase):
     """Long-lived stdin/stdout Kokoro worker.
 
-    Spawns a Python subprocess running ``kokoro-tts-server.py`` (the same
-    script used by TextVis-Game).  One request per line; one response per
-    line.
+    Spawns a Python subprocess running ``kokoro-tts-server.py``
+    (or the bundled ``narrator/kokoro_worker.py``).  One request per
+    line; one response per line.
     """
     name = "kokoro"
 
@@ -214,17 +210,19 @@ class KokoroTTS(_BackendBase):
 
     @staticmethod
     def _find_worker_script() -> str:
-        candidates = [
-            os.path.join(os.path.dirname(__file__), "kokoro_worker.py"),
-            "/home/ara/Documents/Programming/agentic_systems/TextVis-Game/agents/kokoro-tts-server.py",
-            "/home/ara/Documents/Programming/agentic_systems/TextVis 3D/agents/kokoro-tts-server.py",
-        ]
-        for c in candidates:
-            if os.path.exists(c):
-                return c
+        # Prefer the bundled worker, then an env-var override
+        # (``KOKORO_WORKER``) for users who keep Kokoro installed
+        # elsewhere on their machine.
+        bundled = os.path.join(os.path.dirname(__file__), "kokoro_worker.py")
+        if os.path.exists(bundled):
+            return bundled
+        env_override = os.environ.get("KOKORO_WORKER", "")
+        if env_override and os.path.exists(env_override):
+            return env_override
         raise RuntimeError(
-            "Kokoro worker script not found — set worker_script= or "
-            "drop kokoro-tts-server.py next to narrator/tts.py."
+            "Kokoro worker script not found — set the KOKORO_WORKER "
+            "environment variable or drop kokoro-tts-server.py next "
+            "to narrator/tts.py."
         )
 
     def _spawn(self, model: str, voices: str) -> None:
@@ -232,10 +230,7 @@ class KokoroTTS(_BackendBase):
         env["KOKORO_MODEL"] = model
         env["KOKORO_VOICES"] = voices
         # Use the project venv's Python so kokoro_onnx is found.
-        py = os.environ.get(
-            "SEVIM_PYTHON",
-            "/home/ara/Documents/Programming/sevim_math/.venv/bin/python3",
-        )
+        py = os.environ.get("SEVIM_PYTHON", sys.executable)
         self._proc = subprocess.Popen(
             [py, self._worker_script],
             stdin=subprocess.PIPE, stdout=subprocess.PIPE,
@@ -360,10 +355,7 @@ class KokoroStreamTTS(_BackendBase):
         env = dict(os.environ)
         env["KOKORO_MODEL"] = model
         env["KOKORO_VOICES"] = voices
-        py = os.environ.get(
-            "SEVIM_PYTHON",
-            "/home/ara/Documents/Programming/sevim_math/.venv/bin/python3",
-        )
+        py = os.environ.get("SEVIM_PYTHON", sys.executable)
         self._proc = subprocess.Popen(
             [py, self._worker_script],
             stdin=subprocess.PIPE, stdout=subprocess.PIPE,

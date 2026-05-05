@@ -1,23 +1,30 @@
-"""Walk the student corpus, extract (subject, relation, object) triples
-via the local Qwen2.5-14B-Instruct-AWQ vllm server.
+"""Walk a corpus directory, extract (subject, relation, object)
+triples via the local Qwen2.5-14B-Instruct-AWQ vLLM server.
 
 Output: discovery/triples.jsonl — one triple per line with provenance
 {"file": str, "sentence": str, "s": str, "r": str, "o": str}.
 
 Usage:
-    python3 extract_triples.py --max-sentences 500 --max-files 20
+    python3 extract_triples.py --corpus-root /path/to/corpus \\
+        --max-sentences 500 --max-files 20
+
+The corpus root can also be set via the ``LYCEUM_TRIPLE_CORPUS``
+environment variable.  This script was originally exercised on a
+private teaching corpus; the corpus is not redistributed and is not
+required for any reported result in the paper.
 """
 from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import sys
 import time
 import urllib.request
 from pathlib import Path
 
-CORPUS_ROOT = Path("/home/ara/Documents/Teaching/Organized Midterm Projects Clean")
+CORPUS_ROOT = Path(os.environ.get("LYCEUM_TRIPLE_CORPUS", ""))
 OUT_PATH = Path(__file__).parent / "triples.jsonl"
 
 VLLM_URL = "http://127.0.0.1:8000/v1/chat/completions"
@@ -180,11 +187,21 @@ def extract_triples_one(sentence: str) -> list[dict]:
 
 def main() -> int:
     ap = argparse.ArgumentParser()
+    ap.add_argument("--corpus-root", type=Path, default=CORPUS_ROOT,
+                    help="root directory to walk for source files; "
+                         "may also be set via the LYCEUM_TRIPLE_CORPUS "
+                         "environment variable")
     ap.add_argument("--max-sentences", type=int, default=500)
     ap.add_argument("--max-files", type=int, default=None)
     ap.add_argument("--out", type=Path, default=OUT_PATH)
     ns = ap.parse_args()
 
+    if not ns.corpus_root or not Path(ns.corpus_root).is_dir():
+        ap.error("--corpus-root is required (or set $LYCEUM_TRIPLE_CORPUS); "
+                 "no default corpus is shipped with the repository.")
+
+    global CORPUS_ROOT
+    CORPUS_ROOT = Path(ns.corpus_root)
     files = iter_source_files(ns.max_files)
     print(f"sources: {len(files)} files", flush=True)
 

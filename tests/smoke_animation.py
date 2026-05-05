@@ -2,8 +2,7 @@
 
 Run as a standalone script (NOT collected by pytest):
 
-    /home/ara/Documents/Programming/sevim_math/.venv/bin/python3 \
-        /home/ara/Documents/Programming/sevim_math/tests/smoke_animation.py
+    .venv/bin/python3 tests/smoke_animation.py
 
 It writes 2-3 SVGs to /tmp/sevim_animation/ and prints each path + byte size.
 

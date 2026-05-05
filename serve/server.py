@@ -1960,8 +1960,8 @@ class Server:
                 print(f"[serve] using vLLM at {vllm_url} for Q&A — {tag}")
             else:
                 print("[serve] vLLM unreachable; using retrieval-only Q&A "
-                      "(start it with: bash /home/ara/vllm-restart/"
-                      "start_vllm_8000_qwen_text.sh)")
+                      "(start a local vLLM endpoint and re-launch, or "
+                      "point VLLM_BASE_URL at an existing one)")
         # Always try to install the intro backend (silent if vLLM is down).
         intro = make_vllm_intro_backend(base_url=vllm_url, model=vllm_model)
         if intro:

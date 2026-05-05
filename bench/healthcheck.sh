@@ -4,13 +4,17 @@
 #
 # Install as cron (every 15 min):
 #   crontab -e
-#   */15 * * * * /home/ara/Documents/Programming/sevim/bench/healthcheck.sh
+#   */15 * * * * /path/to/repo/bench/healthcheck.sh
+#
+# The Python interpreter is taken from $LYCEUM_PY if set, otherwise the
+# repo-local virtual environment is used.  Override either via cron's
+# environment block.
 
 set -eu
 cd "$(dirname "$0")/.."
 
-VENV_PY="/home/ara/Documents/Programming/agentic_systems/Video Lecture Generator/local_models/venv/bin/python3"
-LOG="/tmp/sevim_health.log"
+VENV_PY="${LYCEUM_PY:-$(pwd)/.venv/bin/python3}"
+LOG="${LYCEUM_HEALTH_LOG:-/tmp/lyceum_health.log}"
 TS="$(date -Iseconds)"
 
 status_line() {

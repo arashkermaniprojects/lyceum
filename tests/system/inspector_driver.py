@@ -178,7 +178,8 @@ def restart_server(book_path: str = 'books/ESLII.json',
     log = open('/tmp/sevim_server.log', 'w')
     env = dict(os.environ)
     env['PYTHONUNBUFFERED'] = '1'
-    cwd = '/home/ara/Documents/Programming/sevim_math'
+    # Repo root is two parents up from this file (tests/system/<this>).
+    cwd = str(Path(__file__).resolve().parents[2])
     subprocess.Popen(
         [f'{cwd}/.venv/bin/python3', '-m', 'serve.server',
          book_path, '--port', str(port)],

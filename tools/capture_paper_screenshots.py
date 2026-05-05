@@ -19,7 +19,7 @@ from pathlib import Path
 from playwright.sync_api import sync_playwright
 
 
-PROJECT = Path('/home/ara/Documents/Programming/sevim_math')
+PROJECT = Path(__file__).resolve().parents[1]
 FIG_DIR = PROJECT / 'paper' / 'figures'
 BASE_URL = 'http://127.0.0.1:8001/'
 VIEWPORT = {'width': 1920, 'height': 1080}

@@ -58,3 +58,9 @@ old/
 
 # Inspector / smoke-test artifacts (regenerable, not source).
 health/
+
+# Private teaching-corpus extraction (contains student identifiers — do
+# NOT commit; it was used only during the design phase to validate the
+# relation-grammar choices, and is not required to reproduce any
+# reported result).
+discovery/triples.jsonl

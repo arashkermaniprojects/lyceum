@@ -1,6 +1,6 @@
 # Discovery run — full-corpus results
 
-**Source:** 109 files from `Organized Midterm Projects Clean` (90 `_codex.tex` write-ups + 19 VTT lecture transcripts).
+**Source:** 109 files from a private internal teaching corpus (90 LaTeX write-ups + 19 VTT lecture transcripts).  The corpus contains personally-identifiable student records and is not redistributed; the aggregate counts below are anonymous and contain no per-student information.
 
 **Pipeline:** sentences → Qwen2.5-14B-Instruct-AWQ (vllm on :8000) → JSON triples → Qwen2.5-7B mean-pool embeddings → greedy single-link clustering at τ = 0.92.
 
@@ -46,7 +46,7 @@ No cluster with > 5 hits demands a new visual pattern, so the ontology remains a
 
 ## Known noise
 
-- `do not provide` (77) — all from grading-report sections inside `_codex.tex`. A regex block-list on section headers (`Grading`, `Submission`, `CLO`) would remove this noise cleanly and likely raise the useful-triple yield from 30% to ≈ 40%.
+- `do not provide` (77) --- all from grading-report sections in the source corpus. A regex block-list on section headers (``Grading``, ``Submission``, ``CLO``) would remove this noise cleanly and likely raise the useful-triple yield from 30% to ≈ 40%.
 - `will do` (11) — planning verbs from student narratives; not a semantic relation.
 
 ## Morphology note
