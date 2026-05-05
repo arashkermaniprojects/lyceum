@@ -1,0 +1,921 @@
+{
+  "metric": "M1_routing_accuracy",
+  "ts": "2026-05-05T00:06:43Z",
+  "labelled_set": "bench/eval/drivers/labels_routing.json",
+  "router_module": "narrator/router.py",
+  "n_utterances": 101,
+  "n_correct": 100,
+  "overall_accuracy": 0.9900990099009901,
+  "macro_precision": 0.99375,
+  "macro_recall": 0.99,
+  "macro_f1": 0.9918714555765594,
+  "per_intent": {
+    "book_overview": {
+      "support": 10,
+      "precision": 1.0,
+      "recall": 0.9,
+      "f1": 0.9473684210526316
+    },
+    "chapter_overview": {
+      "support": 10,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    },
+    "section_overview": {
+      "support": 8,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    },
+    "follow_up": {
+      "support": 10,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    },
+    "control": {
+      "support": 14,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    },
+    "topic_qa": {
+      "support": 15,
+      "precision": 0.9375,
+      "recall": 1.0,
+      "f1": 0.967741935483871
+    },
+    "recap": {
+      "support": 9,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    },
+    "reshow": {
+      "support": 9,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    },
+    "xref_explore": {
+      "support": 8,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    },
+    "dependencies": {
+      "support": 8,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    }
+  },
+  "confusion": {
+    "book_overview": {
+      "book_overview": 9,
+      "topic_qa": 1
+    },
+    "chapter_overview": {
+      "chapter_overview": 10
+    },
+    "section_overview": {
+      "section_overview": 8
+    },
+    "follow_up": {
+      "follow_up": 10
+    },
+    "control": {
+      "control": 14
+    },
+    "topic_qa": {
+      "topic_qa": 15
+    },
+    "recap": {
+      "recap": 9
+    },
+    "reshow": {
+      "reshow": 9
+    },
+    "xref_explore": {
+      "xref_explore": 8
+    },
+    "dependencies": {
+      "dependencies": 8
+    }
+  },
+  "wall_ms": 1.1805510002886876,
+  "wall_us_per_utterance": 11.688623765234532,
+  "rows": [
+    {
+      "text": "what is this book about",
+      "gold": "book_overview",
+      "pred": "book_overview",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "What is this book about?",
+      "gold": "book_overview",
+      "pred": "book_overview",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "summarise the book",
+      "gold": "book_overview",
+      "pred": "book_overview",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "summarize the book",
+      "gold": "book_overview",
+      "pred": "book_overview",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "tell me about this book",
+      "gold": "book_overview",
+      "pred": "book_overview",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "give me a book overview",
+      "gold": "book_overview",
+      "pred": "book_overview",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "could you summarise the book please",
+      "gold": "book_overview",
+      "pred": "book_overview",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "what's this textbook actually covering",
+      "gold": "book_overview",
+      "pred": "topic_qa",
+      "ok": false,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "I want a book overview",
+      "gold": "book_overview",
+      "pred": "book_overview",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "a quick overview of the book",
+      "gold": "book_overview",
+      "pred": "book_overview",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "explain chapter 5",
+      "gold": "chapter_overview",
+      "pred": "chapter_overview",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "what is chapter 3 about",
+      "gold": "chapter_overview",
+      "pred": "chapter_overview",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "Chapter 5 please",
+      "gold": "chapter_overview",
+      "pred": "chapter_overview",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "tell me about chapter 7",
+      "gold": "chapter_overview",
+      "pred": "chapter_overview",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "what does chapter 12 cover",
+      "gold": "chapter_overview",
+      "pred": "chapter_overview",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "give me chapter 4",
+      "gold": "chapter_overview",
+      "pred": "chapter_overview",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "summarise chapter 2",
+      "gold": "chapter_overview",
+      "pred": "chapter_overview",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "explain chapter 5 in detail",
+      "gold": "chapter_overview",
+      "pred": "chapter_overview",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "explain chapter 1 briefly",
+      "gold": "chapter_overview",
+      "pred": "chapter_overview",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "Chapter 99 please",
+      "gold": "chapter_overview",
+      "pred": "chapter_overview",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "explain section 5.8",
+      "gold": "section_overview",
+      "pred": "section_overview",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "§5.8.1",
+      "gold": "section_overview",
+      "pred": "section_overview",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "tell me about 5.8.1",
+      "gold": "section_overview",
+      "pred": "section_overview",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "explain 5.4",
+      "gold": "section_overview",
+      "pred": "section_overview",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "section 7.3",
+      "gold": "section_overview",
+      "pred": "section_overview",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "section 12.2 please",
+      "gold": "section_overview",
+      "pred": "section_overview",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "tell me about section 3.4",
+      "gold": "section_overview",
+      "pred": "section_overview",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "what is section 9.2",
+      "gold": "section_overview",
+      "pred": "section_overview",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "tell me more",
+      "gold": "follow_up",
+      "pred": "follow_up",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "more about that",
+      "gold": "follow_up",
+      "pred": "follow_up",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "go deeper",
+      "gold": "follow_up",
+      "pred": "follow_up",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "Continue.",
+      "gold": "follow_up",
+      "pred": "follow_up",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "more",
+      "gold": "follow_up",
+      "pred": "follow_up",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "deeper",
+      "gold": "follow_up",
+      "pred": "follow_up",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "elaborate",
+      "gold": "follow_up",
+      "pred": "follow_up",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "keep going",
+      "gold": "follow_up",
+      "pred": "follow_up",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "tell me more about that",
+      "gold": "follow_up",
+      "pred": "follow_up",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "explain that more",
+      "gold": "follow_up",
+      "pred": "follow_up",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "pause",
+      "gold": "control",
+      "pred": "control",
+      "ok": true,
+      "pred_action": "pause",
+      "expected_action": "pause"
+    },
+    {
+      "text": "Please pause.",
+      "gold": "control",
+      "pred": "control",
+      "ok": true,
+      "pred_action": "pause",
+      "expected_action": "pause"
+    },
+    {
+      "text": "stop",
+      "gold": "control",
+      "pred": "control",
+      "ok": true,
+      "pred_action": "stop",
+      "expected_action": "stop"
+    },
+    {
+      "text": "cancel",
+      "gold": "control",
+      "pred": "control",
+      "ok": true,
+      "pred_action": "stop",
+      "expected_action": "stop"
+    },
+    {
+      "text": "resume",
+      "gold": "control",
+      "pred": "control",
+      "ok": true,
+      "pred_action": "resume",
+      "expected_action": "resume"
+    },
+    {
+      "text": "unpause",
+      "gold": "control",
+      "pred": "control",
+      "ok": true,
+      "pred_action": "resume",
+      "expected_action": "resume"
+    },
+    {
+      "text": "speed up",
+      "gold": "control",
+      "pred": "control",
+      "ok": true,
+      "pred_action": "fast",
+      "expected_action": "fast"
+    },
+    {
+      "text": "slow down",
+      "gold": "control",
+      "pred": "control",
+      "ok": true,
+      "pred_action": "slow",
+      "expected_action": "slow"
+    },
+    {
+      "text": "louder",
+      "gold": "control",
+      "pred": "control",
+      "ok": true,
+      "pred_action": "louder",
+      "expected_action": "louder"
+    },
+    {
+      "text": "quieter",
+      "gold": "control",
+      "pred": "control",
+      "ok": true,
+      "pred_action": "quieter",
+      "expected_action": "quieter"
+    },
+    {
+      "text": "forget that",
+      "gold": "control",
+      "pred": "control",
+      "ok": true,
+      "pred_action": "forget",
+      "expected_action": "forget"
+    },
+    {
+      "text": "start fresh",
+      "gold": "control",
+      "pred": "control",
+      "ok": true,
+      "pred_action": "forget",
+      "expected_action": "forget"
+    },
+    {
+      "text": "reset",
+      "gold": "control",
+      "pred": "control",
+      "ok": true,
+      "pred_action": "forget",
+      "expected_action": "forget"
+    },
+    {
+      "text": "skip ahead",
+      "gold": "control",
+      "pred": "control",
+      "ok": true,
+      "pred_action": "skip",
+      "expected_action": "skip"
+    },
+    {
+      "text": "what is bagging",
+      "gold": "topic_qa",
+      "pred": "topic_qa",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "what is overfitting",
+      "gold": "topic_qa",
+      "pred": "topic_qa",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "explain ridge regression",
+      "gold": "topic_qa",
+      "pred": "topic_qa",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "what are kernels",
+      "gold": "topic_qa",
+      "pred": "topic_qa",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "how does cross validation work",
+      "gold": "topic_qa",
+      "pred": "topic_qa",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "what is a decision tree",
+      "gold": "topic_qa",
+      "pred": "topic_qa",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "explain gradient boosting",
+      "gold": "topic_qa",
+      "pred": "topic_qa",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "what is a support vector machine",
+      "gold": "topic_qa",
+      "pred": "topic_qa",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "how do random forests work",
+      "gold": "topic_qa",
+      "pred": "topic_qa",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "what is the bias variance tradeoff",
+      "gold": "topic_qa",
+      "pred": "topic_qa",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "what is reproducing kernel hilbert space",
+      "gold": "topic_qa",
+      "pred": "topic_qa",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "explain the lasso",
+      "gold": "topic_qa",
+      "pred": "topic_qa",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "tell me about boosting",
+      "gold": "topic_qa",
+      "pred": "topic_qa",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "what is principal components analysis",
+      "gold": "topic_qa",
+      "pred": "topic_qa",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "explain k means clustering",
+      "gold": "topic_qa",
+      "pred": "topic_qa",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "what have we covered",
+      "gold": "recap",
+      "pred": "recap",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "what did you cover so far",
+      "gold": "recap",
+      "pred": "recap",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "recap",
+      "gold": "recap",
+      "pred": "recap",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "recap so far",
+      "gold": "recap",
+      "pred": "recap",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "summarise what we discussed",
+      "gold": "recap",
+      "pred": "recap",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "summarize what we discussed",
+      "gold": "recap",
+      "pred": "recap",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "where are we so far",
+      "gold": "recap",
+      "pred": "recap",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "where are we now",
+      "gold": "recap",
+      "pred": "recap",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "what did we cover",
+      "gold": "recap",
+      "pred": "recap",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "show me regularization again",
+      "gold": "reshow",
+      "pred": "reshow",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "explain ridge regression again",
+      "gold": "reshow",
+      "pred": "reshow",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "repeat that",
+      "gold": "reshow",
+      "pred": "reshow",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "once more",
+      "gold": "reshow",
+      "pred": "reshow",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "again",
+      "gold": "reshow",
+      "pred": "reshow",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "say that again",
+      "gold": "reshow",
+      "pred": "reshow",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "show me the loss function figure again",
+      "gold": "reshow",
+      "pred": "reshow",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "tell me about boosting again",
+      "gold": "reshow",
+      "pred": "reshow",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "one more time",
+      "gold": "reshow",
+      "pred": "reshow",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "see also",
+      "gold": "xref_explore",
+      "pred": "xref_explore",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "what else references this",
+      "gold": "xref_explore",
+      "pred": "xref_explore",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "what else cites this",
+      "gold": "xref_explore",
+      "pred": "xref_explore",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "where else is this used",
+      "gold": "xref_explore",
+      "pred": "xref_explore",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "related sections",
+      "gold": "xref_explore",
+      "pred": "xref_explore",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "related material",
+      "gold": "xref_explore",
+      "pred": "xref_explore",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "cross-references",
+      "gold": "xref_explore",
+      "pred": "xref_explore",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "what else uses this",
+      "gold": "xref_explore",
+      "pred": "xref_explore",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "prerequisites",
+      "gold": "dependencies",
+      "pred": "dependencies",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "what do I need to know first",
+      "gold": "dependencies",
+      "pred": "dependencies",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "what should I know first",
+      "gold": "dependencies",
+      "pred": "dependencies",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "what do I need to know before",
+      "gold": "dependencies",
+      "pred": "dependencies",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "background for kernels",
+      "gold": "dependencies",
+      "pred": "dependencies",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "what does this depend on",
+      "gold": "dependencies",
+      "pred": "dependencies",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "what comes before",
+      "gold": "dependencies",
+      "pred": "dependencies",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    },
+    {
+      "text": "before we learn",
+      "gold": "dependencies",
+      "pred": "dependencies",
+      "ok": true,
+      "pred_action": "",
+      "expected_action": ""
+    }
+  ],
+  "service_calls": 0,
+  "api_cost_usd": 0.0
+}

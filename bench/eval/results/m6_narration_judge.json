@@ -1,0 +1,203 @@
+{
+  "metric": "M6_narration_judge",
+  "ts": "2026-05-05T00:15:50Z",
+  "n_pairs_total": 343,
+  "n_sampled": 30,
+  "judge": {
+    "model": "claude-sonnet-4-6",
+    "rubric_path": "bench/eval/rubrics/narration_rubric.txt",
+    "status": "skipped_api_key_absent",
+    "scores_mean": {},
+    "spend_usd": 0.0
+  },
+  "objective_proxy": {
+    "metric": "rouge_l_f1",
+    "n": 30,
+    "mean": 0.1499904306372298,
+    "min": 0.08461538461538462,
+    "max": 0.3561643835616438
+  },
+  "rows": [
+    {
+      "nid": "b/ch18/s18_5",
+      "title": "Classification When Features are Unavailable",
+      "rouge_l_f1": 0.09665427509293681,
+      "judge": null
+    },
+    {
+      "nid": "b/ch18/s18_7",
+      "title": "Feature Assessment and the Multiple-Testing Problem.",
+      "rouge_l_f1": 0.21897810218978103,
+      "judge": null
+    },
+    {
+      "nid": "b/ch12/s12_3/ss12_3_5",
+      "title": "A Path Algorithm for the SVM Classifier",
+      "rouge_l_f1": 0.10830324909747294,
+      "judge": null
+    },
+    {
+      "nid": "b/ch6/s6_4",
+      "title": "Structured Local Regression Models in IRp.",
+      "rouge_l_f1": 0.1863799283154122,
+      "judge": null
+    },
+    {
+      "nid": "b/ch18/s18_1",
+      "title": "Whenpis Much Bigger thanN.",
+      "rouge_l_f1": 0.1627906976744186,
+      "judge": null
+    },
+    {
+      "nid": "b/ch13/s13_4/ss13_4_1",
+      "title": "Example",
+      "rouge_l_f1": 0.3561643835616438,
+      "judge": null
+    },
+    {
+      "nid": "b/ch5/s5_2",
+      "title": "Piecewise Polynomials and Splines",
+      "rouge_l_f1": 0.13385826771653545,
+      "judge": null
+    },
+    {
+      "nid": "b/ch7/s7_9/ss7_9_1/sss7_1",
+      "title": "0.1K-Fold Cross-Validation",
+      "rouge_l_f1": 0.1534526854219949,
+      "judge": null
+    },
+    {
+      "nid": "b/ch10/s10_2",
+      "title": "Boosting Fits an Additive Model",
+      "rouge_l_f1": 0.14728682170542637,
+      "judge": null
+    },
+    {
+      "nid": "b/ch5/s_appendix_computations_fo",
+      "title": "Appendix: Computations for Smoothing Splines",
+      "rouge_l_f1": 0.11023622047244093,
+      "judge": null
+    },
+    {
+      "nid": "b/ch3/s3_2/ss3_2_3",
+      "title": "Multiple Regressionfrom Simple Univariate Regression",
+      "rouge_l_f1": 0.11929824561403511,
+      "judge": null
+    },
+    {
+      "nid": "b/ch2/s2_3",
+      "title": "Two Simple Approaches to Prediction:Least Squares and Nearest Neighbors",
+      "rouge_l_f1": 0.12075471698113206,
+      "judge": null
+    },
+    {
+      "nid": "b/ch5/s_bibliographic_notes",
+      "title": "Bibliographic Notes",
+      "rouge_l_f1": 0.08461538461538462,
+      "judge": null
+    },
+    {
+      "nid": "b/ch3/s3_2/ss3_2_2",
+      "title": "The Gauss–Markov Theorem",
+      "rouge_l_f1": 0.1467181467181467,
+      "judge": null
+    },
+    {
+      "nid": "b/ch12/s12_2/ss12_2_1",
+      "title": "Computing the Support Vector Classifier",
+      "rouge_l_f1": 0.1797752808988764,
+      "judge": null
+    },
+    {
+      "nid": "b/ch5/s_appendix_b_splines",
+      "title": "Appendix:B-splines",
+      "rouge_l_f1": 0.14760147601476015,
+      "judge": null
+    },
+    {
+      "nid": "b/ch2/s2_3/ss2_3_2",
+      "title": "Nearest-Neighbor Methods",
+      "rouge_l_f1": 0.16617210682492584,
+      "judge": null
+    },
+    {
+      "nid": "b/ch8/s8_7",
+      "title": "Bagging",
+      "rouge_l_f1": 0.1749271137026239,
+      "judge": null
+    },
+    {
+      "nid": "b/ch14/s14_3/ss14_3_6k",
+      "title": "-means",
+      "rouge_l_f1": 0.0923076923076923,
+      "judge": null
+    },
+    {
+      "nid": "b/ch18/s18_3/ss18_3_1",
+      "title": "Regularized Discriminant Analysis",
+      "rouge_l_f1": 0.12037037037037035,
+      "judge": null
+    },
+    {
+      "nid": "b/ch10/s10_13",
+      "title": "Interpretation",
+      "rouge_l_f1": 0.16666666666666666,
+      "judge": null
+    },
+    {
+      "nid": "b/ch14/s14_2/ss14_2_3",
+      "title": "Example: Market Basket Analysis",
+      "rouge_l_f1": 0.09252669039145907,
+      "judge": null
+    },
+    {
+      "nid": "b/ch11/s11_3",
+      "title": "Neural Networks",
+      "rouge_l_f1": 0.11267605633802814,
+      "judge": null
+    },
+    {
+      "nid": "b/ch3/s3_4/ss3_4_1r",
+      "title": "idge Regression",
+      "rouge_l_f1": 0.1724137931034483,
+      "judge": null
+    },
+    {
+      "nid": "b/ch18/s18_6/ss18_6_2",
+      "title": "Relationship with Partial Least Squares",
+      "rouge_l_f1": 0.1597444089456869,
+      "judge": null
+    },
+    {
+      "nid": "b/ch8/s8_5/ss8_5_2",
+      "title": "The EM Algorithm in General",
+      "rouge_l_f1": 0.15833333333333335,
+      "judge": null
+    },
+    {
+      "nid": "b/ch16/s16_3",
+      "title": "Learning Ensembles",
+      "rouge_l_f1": 0.145748987854251,
+      "judge": null
+    },
+    {
+      "nid": "b/ch14/s_exercises",
+      "title": "Exercises",
+      "rouge_l_f1": 0.12499999999999997,
+      "judge": null
+    },
+    {
+      "nid": "b/ch8/s8_2",
+      "title": "The Bootstrap and Maximum Likelihood Methods",
+      "rouge_l_f1": 0.217687074829932,
+      "judge": null
+    },
+    {
+      "nid": "b/ch8",
+      "title": "Model Inference and Averaging",
+      "rouge_l_f1": 0.1222707423580786,
+      "judge": null
+    }
+  ],
+  "wall_seconds": 0.04665941499843029
+}

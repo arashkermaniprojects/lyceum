@@ -1,0 +1,512 @@
+{
+  "metric": "M3_visual_op_profile",
+  "ts": "2026-05-05T00:12:52Z",
+  "wall_seconds": 0.23334896599772037,
+  "overall": {
+    "n_chapters": 18,
+    "n_clauses_total": 1545,
+    "n_clauses_with_inline_math": 30,
+    "inline_math_rate": 0.019417475728155338,
+    "n_unique_ops_global": 23,
+    "n_unique_refs_global": 346,
+    "op_dedup_total": 15,
+    "ref_dedup_total": 89,
+    "ops_per_clause_mean_overall": 0.01488673139158576,
+    "refs_per_clause_mean_overall": 0.22394822006472492,
+    "op_histogram_overall": {
+      "linear combination": 5,
+      "covariance": 5,
+      "vector norm": 4,
+      "mean squared error": 3,
+      "sigmoid": 2,
+      "dot product": 1,
+      "determinant": 1,
+      "expectation": 1,
+      "cross-entropy": 1
+    },
+    "ref_histogram_overall": {
+      "Figure": 203,
+      "Equation": 122,
+      "Algorithm": 9,
+      "Exercise": 6,
+      "Section": 4,
+      "Chapter": 1,
+      "Table": 1
+    }
+  },
+  "per_chapter": [
+    {
+      "file": "ESLII.chapter_map.b_ch1.json",
+      "chapter": "Introduction",
+      "n_clauses": 14,
+      "n_clauses_with_inline_math": 0,
+      "inline_math_rate": 0.0,
+      "ops_per_clause_mean": 0.0,
+      "ops_per_clause_p50": 0.0,
+      "ops_per_clause_p95": 0.0,
+      "ops_per_clause_max": 0,
+      "refs_per_clause_mean": 0.0,
+      "refs_per_clause_max": 0,
+      "op_dedup_hits": 0,
+      "ref_dedup_hits": 0,
+      "op_dedup_rate": 0.0,
+      "ref_dedup_rate": 0.0,
+      "op_histogram": {},
+      "ref_histogram": {},
+      "n_unique_ops": 0,
+      "n_unique_refs": 0
+    },
+    {
+      "file": "ESLII.chapter_map.b_ch10.json",
+      "chapter": "Boosting and Additive Trees",
+      "n_clauses": 79,
+      "n_clauses_with_inline_math": 0,
+      "inline_math_rate": 0.0,
+      "ops_per_clause_mean": 0.0,
+      "ops_per_clause_p50": 0,
+      "ops_per_clause_p95": 0.0,
+      "ops_per_clause_max": 0,
+      "refs_per_clause_mean": 0.27848101265822783,
+      "refs_per_clause_max": 2,
+      "op_dedup_hits": 0,
+      "ref_dedup_hits": 4,
+      "op_dedup_rate": 0.0,
+      "ref_dedup_rate": 0.15384615384615385,
+      "op_histogram": {},
+      "ref_histogram": {
+        "Figure": 15,
+        "Equation": 5,
+        "Algorithm": 2
+      },
+      "n_unique_ops": 0,
+      "n_unique_refs": 22
+    },
+    {
+      "file": "ESLII.chapter_map.b_ch11.json",
+      "chapter": "Neural Networks",
+      "n_clauses": 87,
+      "n_clauses_with_inline_math": 5,
+      "inline_math_rate": 0.05747126436781609,
+      "ops_per_clause_mean": 0.034482758620689655,
+      "ops_per_clause_p50": 0,
+      "ops_per_clause_p95": 0.0,
+      "ops_per_clause_max": 1,
+      "refs_per_clause_mean": 0.16091954022988506,
+      "refs_per_clause_max": 1,
+      "op_dedup_hits": 0,
+      "ref_dedup_hits": 3,
+      "op_dedup_rate": 0.0,
+      "ref_dedup_rate": 0.17647058823529413,
+      "op_histogram": {
+        "linear combination": 1,
+        "sigmoid": 1,
+        "mean squared error": 1
+      },
+      "ref_histogram": {
+        "Figure": 8,
+        "Equation": 6
+      },
+      "n_unique_ops": 3,
+      "n_unique_refs": 14
+    },
+    {
+      "file": "ESLII.chapter_map.b_ch12.json",
+      "chapter": "Support Vector Machines andFlexible Discriminants",
+      "n_clauses": 131,
+      "n_clauses_with_inline_math": 12,
+      "inline_math_rate": 0.0916030534351145,
+      "ops_per_clause_mean": 0.022900763358778626,
+      "ops_per_clause_p50": 0,
+      "ops_per_clause_p95": 0.0,
+      "ops_per_clause_max": 1,
+      "refs_per_clause_mean": 0.1297709923664122,
+      "refs_per_clause_max": 1,
+      "op_dedup_hits": 2,
+      "ref_dedup_hits": 2,
+      "op_dedup_rate": 0.4,
+      "ref_dedup_rate": 0.10526315789473684,
+      "op_histogram": {
+        "dot product": 1,
+        "covariance": 1,
+        "linear combination": 1
+      },
+      "ref_histogram": {
+        "Equation": 9,
+        "Figure": 8
+      },
+      "n_unique_ops": 3,
+      "n_unique_refs": 17
+    },
+    {
+      "file": "ESLII.chapter_map.b_ch13.json",
+      "chapter": "Prototype Methods and Nearest-Neighbors",
+      "n_clauses": 38,
+      "n_clauses_with_inline_math": 1,
+      "inline_math_rate": 0.02631578947368421,
+      "ops_per_clause_mean": 0.0,
+      "ops_per_clause_p50": 0.0,
+      "ops_per_clause_p95": 0.0,
+      "ops_per_clause_max": 0,
+      "refs_per_clause_mean": 0.3157894736842105,
+      "refs_per_clause_max": 1,
+      "op_dedup_hits": 0,
+      "ref_dedup_hits": 0,
+      "op_dedup_rate": 0.0,
+      "ref_dedup_rate": 0.0,
+      "op_histogram": {},
+      "ref_histogram": {
+        "Figure": 11,
+        "Algorithm": 1
+      },
+      "n_unique_ops": 0,
+      "n_unique_refs": 12
+    },
+    {
+      "file": "ESLII.chapter_map.b_ch14.json",
+      "chapter": "Unsupervised Learning",
+      "n_clauses": 202,
+      "n_clauses_with_inline_math": 4,
+      "inline_math_rate": 0.019801980198019802,
+      "ops_per_clause_mean": 0.0,
+      "ops_per_clause_p50": 0.0,
+      "ops_per_clause_p95": 0.0,
+      "ops_per_clause_max": 0,
+      "refs_per_clause_mean": 0.20297029702970298,
+      "refs_per_clause_max": 2,
+      "op_dedup_hits": 0,
+      "ref_dedup_hits": 14,
+      "op_dedup_rate": 0.0,
+      "ref_dedup_rate": 0.2545454545454545,
+      "op_histogram": {},
+      "ref_histogram": {
+        "Figure": 27,
+        "Equation": 13,
+        "Algorithm": 1
+      },
+      "n_unique_ops": 0,
+      "n_unique_refs": 41
+    },
+    {
+      "file": "ESLII.chapter_map.b_ch15.json",
+      "chapter": "Random Forests",
+      "n_clauses": 53,
+      "n_clauses_with_inline_math": 0,
+      "inline_math_rate": 0.0,
+      "ops_per_clause_mean": 0.0,
+      "ops_per_clause_p50": 0,
+      "ops_per_clause_p95": 0.0,
+      "ops_per_clause_max": 0,
+      "refs_per_clause_mean": 0.20754716981132076,
+      "refs_per_clause_max": 1,
+      "op_dedup_hits": 0,
+      "ref_dedup_hits": 1,
+      "op_dedup_rate": 0.0,
+      "ref_dedup_rate": 0.08333333333333333,
+      "op_histogram": {},
+      "ref_histogram": {
+        "Figure": 10,
+        "Equation": 1
+      },
+      "n_unique_ops": 0,
+      "n_unique_refs": 11
+    },
+    {
+      "file": "ESLII.chapter_map.b_ch16.json",
+      "chapter": "Ensemble Learning",
+      "n_clauses": 30,
+      "n_clauses_with_inline_math": 1,
+      "inline_math_rate": 0.03333333333333333,
+      "ops_per_clause_mean": 0.03333333333333333,
+      "ops_per_clause_p50": 0.0,
+      "ops_per_clause_p95": 0.0,
+      "ops_per_clause_max": 1,
+      "refs_per_clause_mean": 0.3333333333333333,
+      "refs_per_clause_max": 2,
+      "op_dedup_hits": 0,
+      "ref_dedup_hits": 0,
+      "op_dedup_rate": 0.0,
+      "ref_dedup_rate": 0.0,
+      "op_histogram": {
+        "mean squared error": 1
+      },
+      "ref_histogram": {
+        "Figure": 7,
+        "Algorithm": 2,
+        "Chapter": 1
+      },
+      "n_unique_ops": 1,
+      "n_unique_refs": 10
+    },
+    {
+      "file": "ESLII.chapter_map.b_ch17.json",
+      "chapter": "Undirected Graphical Models",
+      "n_clauses": 35,
+      "n_clauses_with_inline_math": 0,
+      "inline_math_rate": 0.0,
+      "ops_per_clause_mean": 0.02857142857142857,
+      "ops_per_clause_p50": 0,
+      "ops_per_clause_p95": 0.0,
+      "ops_per_clause_max": 1,
+      "refs_per_clause_mean": 0.34285714285714286,
+      "refs_per_clause_max": 1,
+      "op_dedup_hits": 2,
+      "ref_dedup_hits": 0,
+      "op_dedup_rate": 0.6666666666666666,
+      "ref_dedup_rate": 0.0,
+      "op_histogram": {
+        "covariance": 1
+      },
+      "ref_histogram": {
+        "Figure": 7,
+        "Section": 3,
+        "Algorithm": 2
+      },
+      "n_unique_ops": 1,
+      "n_unique_refs": 12
+    },
+    {
+      "file": "ESLII.chapter_map.b_ch18.json",
+      "chapter": "High-Dimensional Problems:p≫N",
+      "n_clauses": 96,
+      "n_clauses_with_inline_math": 0,
+      "inline_math_rate": 0.0,
+      "ops_per_clause_mean": 0.020833333333333332,
+      "ops_per_clause_p50": 0.0,
+      "ops_per_clause_p95": 0.0,
+      "ops_per_clause_max": 1,
+      "refs_per_clause_mean": 0.22916666666666666,
+      "refs_per_clause_max": 2,
+      "op_dedup_hits": 1,
+      "ref_dedup_hits": 2,
+      "op_dedup_rate": 0.3333333333333333,
+      "ref_dedup_rate": 0.08333333333333333,
+      "op_histogram": {
+        "vector norm": 1,
+        "linear combination": 1
+      },
+      "ref_histogram": {
+        "Figure": 11,
+        "Equation": 10,
+        "Exercise": 1
+      },
+      "n_unique_ops": 2,
+      "n_unique_refs": 22
+    },
+    {
+      "file": "ESLII.chapter_map.b_ch2.json",
+      "chapter": "Overview of Supervised Learning",
+      "n_clauses": 96,
+      "n_clauses_with_inline_math": 3,
+      "inline_math_rate": 0.03125,
+      "ops_per_clause_mean": 0.010416666666666666,
+      "ops_per_clause_p50": 0.0,
+      "ops_per_clause_p95": 0.0,
+      "ops_per_clause_max": 1,
+      "refs_per_clause_mean": 0.2604166666666667,
+      "refs_per_clause_max": 2,
+      "op_dedup_hits": 0,
+      "ref_dedup_hits": 4,
+      "op_dedup_rate": 0.0,
+      "ref_dedup_rate": 0.13793103448275862,
+      "op_histogram": {
+        "mean squared error": 1
+      },
+      "ref_histogram": {
+        "Equation": 18,
+        "Figure": 7
+      },
+      "n_unique_ops": 1,
+      "n_unique_refs": 25
+    },
+    {
+      "file": "ESLII.chapter_map.b_ch3.json",
+      "chapter": "Linear Methods for Regression",
+      "n_clauses": 138,
+      "n_clauses_with_inline_math": 1,
+      "inline_math_rate": 0.007246376811594203,
+      "ops_per_clause_mean": 0.028985507246376812,
+      "ops_per_clause_p50": 0.0,
+      "ops_per_clause_p95": 0.0,
+      "ops_per_clause_max": 1,
+      "refs_per_clause_mean": 0.1956521739130435,
+      "refs_per_clause_max": 2,
+      "op_dedup_hits": 1,
+      "ref_dedup_hits": 8,
+      "op_dedup_rate": 0.2,
+      "ref_dedup_rate": 0.22857142857142856,
+      "op_histogram": {
+        "linear combination": 1,
+        "vector norm": 1,
+        "covariance": 1,
+        "determinant": 1
+      },
+      "ref_histogram": {
+        "Figure": 16,
+        "Equation": 10,
+        "Algorithm": 1
+      },
+      "n_unique_ops": 4,
+      "n_unique_refs": 27
+    },
+    {
+      "file": "ESLII.chapter_map.b_ch4.json",
+      "chapter": "Linear Methods for Classification",
+      "n_clauses": 106,
+      "n_clauses_with_inline_math": 1,
+      "inline_math_rate": 0.009433962264150943,
+      "ops_per_clause_mean": 0.02830188679245283,
+      "ops_per_clause_p50": 0.0,
+      "ops_per_clause_p95": 0.0,
+      "ops_per_clause_max": 1,
+      "refs_per_clause_mean": 0.2358490566037736,
+      "refs_per_clause_max": 2,
+      "op_dedup_hits": 6,
+      "ref_dedup_hits": 10,
+      "op_dedup_rate": 0.6666666666666666,
+      "ref_dedup_rate": 0.2857142857142857,
+      "op_histogram": {
+        "linear combination": 1,
+        "covariance": 1,
+        "sigmoid": 1
+      },
+      "ref_histogram": {
+        "Figure": 15,
+        "Equation": 10
+      },
+      "n_unique_ops": 3,
+      "n_unique_refs": 25
+    },
+    {
+      "file": "ESLII.chapter_map.b_ch5.json",
+      "chapter": "Basis Expansions and Regularization",
+      "n_clauses": 78,
+      "n_clauses_with_inline_math": 1,
+      "inline_math_rate": 0.01282051282051282,
+      "ops_per_clause_mean": 0.0,
+      "ops_per_clause_p50": 0.0,
+      "ops_per_clause_p95": 0.0,
+      "ops_per_clause_max": 0,
+      "refs_per_clause_mean": 0.07692307692307693,
+      "refs_per_clause_max": 1,
+      "op_dedup_hits": 0,
+      "ref_dedup_hits": 0,
+      "op_dedup_rate": 0.0,
+      "ref_dedup_rate": 0.0,
+      "op_histogram": {},
+      "ref_histogram": {
+        "Figure": 6
+      },
+      "n_unique_ops": 0,
+      "n_unique_refs": 6
+    },
+    {
+      "file": "ESLII.chapter_map.b_ch6.json",
+      "chapter": "Kernel Smoothing Methods",
+      "n_clauses": 98,
+      "n_clauses_with_inline_math": 0,
+      "inline_math_rate": 0.0,
+      "ops_per_clause_mean": 0.0,
+      "ops_per_clause_p50": 0.0,
+      "ops_per_clause_p95": 0.0,
+      "ops_per_clause_max": 0,
+      "refs_per_clause_mean": 0.37755102040816324,
+      "refs_per_clause_max": 2,
+      "op_dedup_hits": 0,
+      "ref_dedup_hits": 10,
+      "op_dedup_rate": 0.0,
+      "ref_dedup_rate": 0.2127659574468085,
+      "op_histogram": {},
+      "ref_histogram": {
+        "Equation": 17,
+        "Figure": 15,
+        "Exercise": 5
+      },
+      "n_unique_ops": 0,
+      "n_unique_refs": 37
+    },
+    {
+      "file": "ESLII.chapter_map.b_ch7.json",
+      "chapter": "Model Assessment and Selection",
+      "n_clauses": 77,
+      "n_clauses_with_inline_math": 1,
+      "inline_math_rate": 0.012987012987012988,
+      "ops_per_clause_mean": 0.012987012987012988,
+      "ops_per_clause_p50": 0,
+      "ops_per_clause_p95": 0.0,
+      "ops_per_clause_max": 1,
+      "refs_per_clause_mean": 0.3116883116883117,
+      "refs_per_clause_max": 2,
+      "op_dedup_hits": 0,
+      "ref_dedup_hits": 10,
+      "op_dedup_rate": 0.0,
+      "ref_dedup_rate": 0.29411764705882354,
+      "op_histogram": {
+        "vector norm": 1
+      },
+      "ref_histogram": {
+        "Figure": 14,
+        "Equation": 9,
+        "Section": 1
+      },
+      "n_unique_ops": 1,
+      "n_unique_refs": 24
+    },
+    {
+      "file": "ESLII.chapter_map.b_ch8.json",
+      "chapter": "Model Inference and Averaging",
+      "n_clauses": 102,
+      "n_clauses_with_inline_math": 0,
+      "inline_math_rate": 0.0,
+      "ops_per_clause_mean": 0.0196078431372549,
+      "ops_per_clause_p50": 0.0,
+      "ops_per_clause_p95": 0.0,
+      "ops_per_clause_max": 2,
+      "refs_per_clause_mean": 0.2549019607843137,
+      "refs_per_clause_max": 2,
+      "op_dedup_hits": 1,
+      "ref_dedup_hits": 17,
+      "op_dedup_rate": 0.3333333333333333,
+      "ref_dedup_rate": 0.3953488372093023,
+      "op_histogram": {
+        "expectation": 1,
+        "covariance": 1
+      },
+      "ref_histogram": {
+        "Figure": 13,
+        "Equation": 12,
+        "Table": 1
+      },
+      "n_unique_ops": 2,
+      "n_unique_refs": 26
+    },
+    {
+      "file": "ESLII.chapter_map.b_ch9.json",
+      "chapter": "Additive Models, Trees, and Related Methods",
+      "n_clauses": 85,
+      "n_clauses_with_inline_math": 0,
+      "inline_math_rate": 0.0,
+      "ops_per_clause_mean": 0.023529411764705882,
+      "ops_per_clause_p50": 0,
+      "ops_per_clause_p95": 0.0,
+      "ops_per_clause_max": 1,
+      "refs_per_clause_mean": 0.17647058823529413,
+      "refs_per_clause_max": 1,
+      "op_dedup_hits": 2,
+      "ref_dedup_hits": 4,
+      "op_dedup_rate": 0.5,
+      "ref_dedup_rate": 0.21052631578947367,
+      "op_histogram": {
+        "vector norm": 1,
+        "cross-entropy": 1
+      },
+      "ref_histogram": {
+        "Figure": 13,
+        "Equation": 2
+      },
+      "n_unique_ops": 2,
+      "n_unique_refs": 15
+    }
+  ],
+  "service_calls": 0,
+  "api_cost_usd": 0.0
+}

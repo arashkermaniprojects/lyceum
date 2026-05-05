@@ -1,0 +1,150 @@
+{
+  "metric": "M4_math_graph_coverage",
+  "ts": "2026-05-05T00:13:40Z",
+  "graph_file": "books/ESLII.math_graph.json",
+  "wall_seconds": 0.2062781430031464,
+  "totals": {
+    "n_passages": 27863,
+    "n_formulas": 1723,
+    "n_vars": 231,
+    "n_concepts": 53,
+    "n_edges": 22335
+  },
+  "coverage": {
+    "n_passages_anchored": 6699,
+    "fraction_passages_anchored": 0.2404263718910383,
+    "anchor_density_mean": 1.9779071503209433,
+    "anchor_density_p50": 1,
+    "anchor_density_p95": 5
+  },
+  "per_chapter": [
+    {
+      "chapter": "ch1",
+      "n_passages": 169,
+      "n_anchored": 0,
+      "coverage": 0.0
+    },
+    {
+      "chapter": "ch2",
+      "n_passages": 1323,
+      "n_anchored": 452,
+      "coverage": 0.3416477702191988
+    },
+    {
+      "chapter": "ch3",
+      "n_passages": 2497,
+      "n_anchored": 755,
+      "coverage": 0.302362835402483
+    },
+    {
+      "chapter": "ch4",
+      "n_passages": 1360,
+      "n_anchored": 377,
+      "coverage": 0.2772058823529412
+    },
+    {
+      "chapter": "ch5",
+      "n_passages": 1685,
+      "n_anchored": 649,
+      "coverage": 0.3851632047477745
+    },
+    {
+      "chapter": "ch6",
+      "n_passages": 488,
+      "n_anchored": 174,
+      "coverage": 0.35655737704918034
+    },
+    {
+      "chapter": "ch7",
+      "n_passages": 1805,
+      "n_anchored": 457,
+      "coverage": 0.253185595567867
+    },
+    {
+      "chapter": "ch8",
+      "n_passages": 1327,
+      "n_anchored": 512,
+      "coverage": 0.3858327053504145
+    },
+    {
+      "chapter": "ch9",
+      "n_passages": 1835,
+      "n_anchored": 293,
+      "coverage": 0.15967302452316076
+    },
+    {
+      "chapter": "ch10",
+      "n_passages": 1417,
+      "n_anchored": 347,
+      "coverage": 0.24488355681016233
+    },
+    {
+      "chapter": "ch11",
+      "n_passages": 1124,
+      "n_anchored": 209,
+      "coverage": 0.18594306049822065
+    },
+    {
+      "chapter": "ch12",
+      "n_passages": 1584,
+      "n_anchored": 480,
+      "coverage": 0.30303030303030304
+    },
+    {
+      "chapter": "ch13",
+      "n_passages": 836,
+      "n_anchored": 95,
+      "coverage": 0.11363636363636363
+    },
+    {
+      "chapter": "ch14",
+      "n_passages": 4197,
+      "n_anchored": 779,
+      "coverage": 0.18560876816773886
+    },
+    {
+      "chapter": "ch15",
+      "n_passages": 595,
+      "n_anchored": 86,
+      "coverage": 0.14453781512605043
+    },
+    {
+      "chapter": "ch16",
+      "n_passages": 823,
+      "n_anchored": 252,
+      "coverage": 0.30619684082624543
+    },
+    {
+      "chapter": "ch17",
+      "n_passages": 1012,
+      "n_anchored": 307,
+      "coverage": 0.30335968379446643
+    },
+    {
+      "chapter": "ch18",
+      "n_passages": 2316,
+      "n_anchored": 472,
+      "coverage": 0.20379965457685664
+    },
+    {
+      "chapter": "other",
+      "n_passages": 1470,
+      "n_anchored": 3,
+      "coverage": 0.0020408163265306124
+    }
+  ],
+  "edge_type_histogram": {
+    "about": 13250,
+    "uses": 5610,
+    "defines": 1289,
+    "paired_in_clause": 1236,
+    "references": 436,
+    "contains": 256,
+    "binds": 188,
+    "instance_of": 53,
+    "specializes": 15,
+    "related_to": 2
+  },
+  "service_calls": 0,
+  "api_cost_usd": 0.0
+}

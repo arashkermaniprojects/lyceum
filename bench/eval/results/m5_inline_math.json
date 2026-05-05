@@ -1,0 +1,143 @@
+{
+  "metric": "M5_inline_math_vs_anchor",
+  "ts": "2026-05-05T00:14:40Z",
+  "graph_file": "books/ESLII.math_graph.json",
+  "n_positives_total": 6677,
+  "n_negatives_total": 19604,
+  "sample_per_class": 500,
+  "wall_seconds": 0.03540814699954353,
+  "tp": 309,
+  "fp": 26,
+  "fn": 191,
+  "tn": 474,
+  "precision": 0.9223880597014925,
+  "recall": 0.618,
+  "f1": 0.7401197604790419,
+  "accuracy": 0.783,
+  "false_positive_sample": [
+    {
+      "id": "p:25965@b/ch18/s18_7",
+      "home_nid": "b/ch18/s18_7",
+      "anchors": 0,
+      "text": "There are M = 12, 625 genes altogether; the table shows the data for some of the genes and samples for illustration."
+    },
+    {
+      "id": "p:19177@b/ch14/s14_2/ss14_2_2",
+      "home_nid": "b/ch14/s14_2/ss14_2_2",
+      "anchors": 0,
+      "text": "The notation Pr of A, the probability of an item set A occurring in a basket, is an abbreviation for 14.2 Association Rules 491 Pr of Q k in A Zk = 1."
+    },
+    {
+      "id": "p:10531@b/ch8/s8_7/ss8_7_1",
+      "home_nid": "b/ch8/s8_7/ss8_7_1",
+      "anchors": 0,
+      "text": "Here x is ﬁxed and the bootstrap dataset Z∗ consists of observations x∗ i , y∗ i , i = 1, 2, . . . , N sampled from P."
+    },
+    {
+      "id": "p:10522@b/ch8/s8_7/ss8_7_1",
+      "home_nid": "b/ch8/s8_7/ss8_7_1",
+      "anchors": 0,
+      "text": "Model Inference and Averaging | x.1 < 0.395 0 1 0 1 0 1 1 0 Original Tree | x.1 < 0.555 0 1 0 0 1 b = 1 | x.2 < 0.205 0 1 0 1 0 1 b = 2 | x.2 < 0.285 1 1 0 1 0 b = 3 | x.3 < 0.985 0 1 0 1 1 1 b = 4 | "
+    },
+    {
+      "id": "p:24870@b/ch18",
+      "home_nid": "b/ch18",
+      "anchors": 0,
+      "text": "Ex. 18.13 Suppose our p > N predictors are presented as an N times N inner- product matrix K = XXT , and we wish to ﬁt the equivalent of a linear logistic regression model in the original features wit"
+    },
+    {
+      "id": "p:20983@b/ch14/s14_6/ss14_6_1",
+      "home_nid": "b/ch14/s14_6/ss14_6_1",
+      "anchors": 0,
+      "text": "In Figure 14.35, for example, p = 2, N = 50 while r = 2, 4 or 8."
+    },
+    {
+      "id": "p:3555@b/ch3/s3_6",
+      "home_nid": "b/ch3/s3_6",
+      "anchors": 0,
+      "text": "It can also be shown that the sequence of PLS coeﬃcients for m = 1, 2, . . . , p represents the conjugate gradient sequence for computing the least squares solutions of Exercise 3.18. 3.6 Discussion: "
+    },
+    {
+      "id": "p:14402@b/ch11/s11_2",
+      "home_nid": "b/ch11/s11_2",
+      "anchors": 0,
+      "text": "Consider just one term of M = 1, and drop the subscript."
+    },
+    {
+      "id": "p:17405@b/ch14",
+      "home_nid": "b/ch14",
+      "anchors": 0,
+      "text": "Unsupervised Learning Conditioning one has Pr of X, Y = Pr of Y |X times Pr of X, where Pr of X is the joint marginal density of the X values alone."
+    },
+    {
+      "id": "p:18945@b/ch14/s14_2",
+      "home_nid": "b/ch14/s14_2",
+      "anchors": 0,
+      "text": "Note that if the subset sj is in fact the entire set of values sj = Sj, as is often the case, the variable Xj is said not to appear in the rule of 14.2. 14.2.1 Market Basket Analysis General approache"
+    }
+  ],
+  "false_negative_sample": [
+    {
+      "id": "p:7733@b/ch7",
+      "home_nid": "b/ch7",
+      "anchors": 1,
+      "text": "(7.30) The function AIC of alpha provides an estimate of the test error curve, and we ﬁnd the tuning parameter ˆ alpha that minimizes it."
+    },
+    {
+      "id": "p:11398@b/ch9/s9_1",
+      "home_nid": "b/ch9/s9_1",
+      "anchors": 1,
+      "text": "These techniques each assume a of diﬀerent structured form for the unknown regression function, and by doing so they ﬁnesse the curse of dimensionality."
+    },
+    {
+      "id": "p:9618@b/ch8",
+      "home_nid": "b/ch8",
+      "anchors": 1,
+      "text": "Continue step 2 until the joint distribution of of U of t 1 , U of t 2 , . . . , U of t K does not change. dures."
+    },
+    {
+      "id": "p:20535@b/ch14/s14_5",
+      "home_nid": "b/ch14/s14_5",
+      "anchors": 1,
+      "text": "Unsupervised Learning We can gain more insight into kernel PCA by viewing the zm as sam- ple evaluations of principal component functions gm in HK, with HK the reproducing kernel Hilbert space generat"
+    },
+    {
+      "id": "p:12474@b/ch9/s_bibliographic_notes",
+      "home_nid": "b/ch9/s_bibliographic_notes",
+      "anchors": 1,
+      "text": "The required number of cycles m of the backﬁtting algorithm is usually less than 20 and often less than 10, and depends on the amount of correlation in the inputs."
+    },
+    {
+      "id": "p:3995@b/ch3/s_exercises",
+      "home_nid": "b/ch3/s_exercises",
+      "anchors": 1,
+      "text": "Ex. 3.21 Show that the solution to the reduced-rank regression problem of 3.68, with sigma estimated by YT Y/N, is given by of 3.69."
+    },
+    {
+      "id": "p:6668@b/ch5/s5_8/ss5_8_2",
+      "home_nid": "b/ch5/s5_8/ss5_8_2",
+      "anchors": 1,
+      "text": "The typical scenario is that “smooth” functions phi j have large prior variance, while “rough” phi j have small prior variances."
+    },
+    {
+      "id": "p:15083@b/ch12",
+      "home_nid": "b/ch12",
+      "anchors": 3,
+      "text": "A large value of C will discourage any positive xi i, and lead to an overﬁt wiggly boundary in the original feature space; a small value of C will encourage a small value of ∥ beta ∥, which in turn ca"
+    },
+    {
+      "id": "p:21801@b/ch15",
+      "home_nid": "b/ch15",
+      "anchors": 1,
+      "text": "This appears to fail if rho is negative; diagnose the problem in this case."
+    },
+    {
+      "id": "p:10163@b/ch8/s8_5",
+      "home_nid": "b/ch8/s8_5",
+      "anchors": 1,
+      "text": "Hence we are actually looking for a good local maximum of the likelihood, one for which ˆ sigma 2 1, ˆ sigma 2 2 > 0."
+    }
+  ],
+  "service_calls": 0,
+  "api_cost_usd": 0.0
+}
