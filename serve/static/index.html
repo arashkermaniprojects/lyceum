@@ -3858,6 +3858,12 @@
     if (kind === "chapter") return true;
     // Sipser-style: "Ch N: ..." sections wrapped under a "part".
     if (kind === "section" && _TOC_CH_TITLE_RE.test(title)) return true;
+    // MML-style: top-level numbered sections inside a "Part" (e.g.
+    // "9 Linear Regression").  The integer-only number distinguishes
+    // a true chapter from a sub-section like "9.1".
+    if (kind === "section"
+        && typeof node.number === "string"
+        && /^\d+$/.test(node.number.trim())) return true;
     return false;
   }
 
