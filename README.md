@@ -1,231 +1,292 @@
-# SeVim — Semantic Visual Mapper
+# Lyceum
 
-Convert natural-language educational text into deterministic SVG diagrams,
-with no hallucination and no external API calls required.
+**A fully-local multimodal system that turns a static mathematics or
+statistics PDF textbook into an interactive, narrated whiteboard.**
 
-```
-"Decision trees partition the feature space recursively."
+Lyceum ingests a textbook, builds a per-book *math semantic graph*
+(formulas, variables, concepts and their dependencies) before any
+narration starts, and at run time emits a synchronised audio stream
+plus a stream of typed visual primitives (passage cards, book figures,
+curated canonical diagrams, formula cards, reference cards,
+cross-section connectors).  Every visual emission is timed against the
+audio clock by a single animation-frame loop, so the spoken track and
+the whiteboard cannot drift apart.
 
-      ┌──────────────────┐       causes      ┌──────────────────┐
-      │  decision tree   │ ────────────────▶ │ feature space    │
-      └──────────────────┘                   │ partitioning     │
-                                             └──────────────────┘
-```
+No external API is reachable from any production process — the entire
+runtime stack (text LLM, vision-language inspector, sentence
+embedder, text-to-speech) is served on the user's own machine.
 
----
-
-## Pipeline overview
-
-```mermaid
-flowchart LR
-    subgraph core ["Core pipeline (no external calls)"]
-        S1["S1 Parse\ns1_parse.py\n─────────\nclause splitter\nSpanTokens"]
-        S2["S2 Extract\ns2_extract.py\n─────────\ndep-parse + regex\nSceneGraph"]
-        S3["S3 Map\ns3_map.py\n─────────\nsymbolic + φ\nVisualGraph"]
-        S4["S4 Layout\ns4_layout.py\n─────────\nSugiyama / grid\nPlacedGraph"]
-        S5["S5 Render\ns5_render.py\n─────────\nSVG serialiser"]
-        S1 --> S2 --> S3 --> S4 --> S5
-    end
-
-    subgraph optional ["Optional / side-loaded"]
-        S2b["S2b Improve\ns2b_improve.py\n─────────\nClaude Haiku\ngraph rewriter"]
-        Qwen["Encoder\nembed.py\n─────────\nQwen2.5-7B\nmean-pool"]
-    end
-
-    S2 -- "SEVIM_IMPROVE=1" --> S2b --> S3
-    S2 -. "loaded on first encode()" .-> Qwen
-```
-
-| Module | Stage | Input → Output | Key algorithm |
-|---|---|---|---|
-| `s1_parse.py` | S1 | `str` → `[SpanToken]` | regex clause splitter |
-| `s2_extract.py` | S2 | `[SpanToken]` → `SceneGraph` | dep-parse + regex cascade |
-| `s2b_improve.py` | S2b *(opt)* | `SceneGraph` → `SceneGraph` | Claude Haiku API |
-| `s3_map.py` | S3 | `SceneGraph` → `VisualGraph` | symbolic + frozen-W projection |
-| `s4_layout.py` | S4 | `VisualGraph` → `PlacedGraph` | Sugiyama layered layout |
-| `s5_render.py` | S5 | `PlacedGraph` → `str` (SVG) | SVG serialisation |
-| `embed.py` | — | `str` → `tuple[float,…]` | Qwen2.5-7B mean-pool |
-| `ir.py` | — | data model | dataclasses |
-| `overlap.py` | S4.5 | `PlacedGraph` → findings | geometry checker |
-| `pipeline.py` | — | orchestrator | `run_pipeline()` |
-| `cli.py` | — | CLI entry point | argparse |
-
----
-
-## Installation
-
-**Requires Python 3.10+.**
-
-```bash
-# 1. Clone
-git clone https://github.com/arashkermaniprojects/sevim.git
-cd sevim
-
-# 2. Install the base package (no ML dependencies)
-pip install -e .
-
-# 3. (Optional) Install the Qwen encoder for richer node geometry
-pip install -e ".[embed]"   # adds torch + transformers
-```
-
-The base install runs the full pipeline without Qwen (all embeddings are
-empty; shapes fall back to salience-only sizing).
-
----
-
-## Quick start — CLI
-
-```bash
-# Write your text to a file
-echo "Gradient descent minimises the loss function by updating weights." > input.txt
-
-# Run the pipeline
-sevim input.txt
-
-# Outputs:
-#   out.svg          — the diagram
-#   out.ir.json      — scene graph (nodes, edges, revision counter)
-#   out.trace.json   — per-stage diagnostic trace
-```
-
-Custom output prefix:
-
-```bash
-sevim input.txt --out diagrams/gradient_descent
-# → diagrams/gradient_descent.svg
-# → diagrams/gradient_descent.ir.json
-# → diagrams/gradient_descent.trace.json
-```
-
-Read from stdin:
-
-```bash
-cat input.txt | sevim -
-```
-
----
-
-## Quick start — Python API
-
-```python
-from sevim.pipeline import run_pipeline
-
-result = run_pipeline("Backpropagation computes gradients using the chain rule.")
-
-print(result.svg)           # SVG string
-print(result.graph.nodes)   # list[SceneNode]
-print(result.graph.edges)   # list[SceneEdge]
-print(result.trace)         # list[TraceEvent], one per stage
-```
-
-### Multi-turn / streaming
-
-Pass the previous result's graph to extend the diagram across turns:
-
-```python
-r1 = run_pipeline("A neural network contains layers.", utterance_id="u0")
-r2 = run_pipeline("Each layer applies a linear transform.", utterance_id="u1", graph=r1.graph)
-# r2.svg shows both sentences merged into one diagram
-```
-
----
-
-## Environment variables
-
-| Variable | Default | Effect |
-|---|---|---|
-| `SEVIM_DISABLE_EMBED` | *(unset)* | Set to `1` to skip Qwen entirely (faster, no torch required) |
-| `SEVIM_EMBED_MODEL` | `Qwen/Qwen2.5-7B` | HuggingFace model ID for the encoder |
-| `SEVIM_EMBED_MAX_TOKENS` | `128` | Token truncation limit for the encoder |
-| `SEVIM_IMPROVE` | *(unset)* | Set to `1` to enable Claude Haiku graph rewriting (S2b) |
-| `ANTHROPIC_API_KEY` | *(unset)* | Required when `SEVIM_IMPROVE=1` |
-| `SEVIM_STRICT_OVERLAPS` | *(unset)* | Set to `1` to raise `OverlapError` instead of logging |
-| `SEVIM_STRICT_DET` | *(unset)* | Set to `1` to pin single-threaded CPU ops (reproducibility) |
-| `SEVIM_CANVAS_W` | `700` | Canvas width in SVG user units |
-| `SEVIM_CANVAS_H` | `440` | Canvas height in SVG user units |
-
----
-
-## Relation types
-
-The 12 semantic relations used throughout the pipeline:
-
-| Relation | Visual encoding | Typical meaning |
-|---|---|---|
-| `causes` | directed arrow | A produces / leads to B |
-| `used_for` | dashed arrow | A is a tool or technique for B |
-| `requires` | hollow-triangle arrow | A needs B as a prerequisite |
-| `reduces_to` | filled triangle (funnel) | A simplifies / specialises to B |
-| `measures` | dotted line + `=` label | A quantifies B |
-| `contains` | container nesting | A holds B as a member |
-| `part_of` | container nesting | A is a component of B |
-| `instance_of` | dashed arrow (up) | A is an example of B |
-| `similar_to` | double parallel line + `≈` | A and B are analogous |
-| `opposes` | bar–bar line | A and B are in contrast |
-| `attribute_of` | smaller adjacent ellipse | A is a property of B |
-| `sequence` | horizontal strip | A comes before B in order |
-
----
-
-## Shape grammar
-
-| Primitive | When used |
-|---|---|
-| `rect` | Default concept node |
-| `ellipse` | Attribute / property node |
-| `diamond` | Numeric parameter (weight, loss, …) |
-| `hexagon` | Neural-network architecture (CNN, RNN, …) |
-| `parallelogram` | Layer / transform / projection |
-
----
-
-## Running tests
-
-```bash
-pytest tests/
-```
-
----
-
-## Optional: S2b LLM graph improvement
-
-When `SEVIM_IMPROVE=1` and `ANTHROPIC_API_KEY` are set, the pipeline calls
-**Claude Haiku** (`claude-haiku-4-5-20251001`) after S2 extraction to:
-
-- Merge near-duplicate nodes
-- Remove spurious edges
-- Add missing obvious edges
-- Clean verbose node labels
-
-This breaks determinism (invariant I1) because the model is stochastic.
-The trace log records the pre- and post-improvement graph sizes.
-
-```bash
-export SEVIM_IMPROVE=1
-export ANTHROPIC_API_KEY=sk-ant-...
-sevim input.txt
-```
+> **Status:** the accompanying paper is currently under review.  This
+> repository ships the implementation, evaluation harness, and per-book
+> sidecars used to produce every numerical claim in the paper.
 
 ---
 
 ## Citation
 
-If you use SeVim in your research, please cite:
+If you use Lyceum, the math semantic graph design, the evaluation
+harness, or any of the material in this repository in your research,
+**please cite the paper**:
 
 ```bibtex
-@article{kermanikolankeh2026sevim,
-  title     = {{SeVim}: Deterministic Semantic-to-Visual Mapping for Educational Diagrams},
-  author    = {Kermani Kolankeh, Arash},
-  journal   = {IEEE Transactions on Pattern Analysis and Machine Intelligence},
-  year      = {2026},
-  note      = {Under review},
-  url       = {https://github.com/arashkermaniprojects/sevim}
+@article{lyceum2026,
+  title    = {{Lyceum}: a fully-local multimodal system for narrated
+              visualisation of mathematical textbooks},
+  author   = {Kermani Kolankeh, Arash and Zgheib, Rita},
+  journal  = {<TO BE FILLED IN ON ACCEPTANCE>},
+  year     = {<YEAR>},
+  volume   = {<VOLUME>},
+  number   = {<ISSUE>},
+  pages    = {<PAGES>},
+  doi      = {<DOI>},
+  url      = {<URL>},
+  note     = {Preprint / under review at the time of writing}
 }
 ```
+
+The bundled SeVim diagram engine has its own citation under
+[`sevim/README.md`](sevim/README.md); please cite both when you use
+the diagram-rendering pipeline directly.
+
+A `CITATION.cff` file at the repository root resolves to the same
+record so GitHub's "Cite this repository" button works end-to-end.
+
+---
+
+## Highlights
+
+- **Fully local.** vLLM serves a quantised text LLM, an embedding
+  model and a vision-language inspector; Kokoro is the text-to-speech
+  subprocess.  No request leaves the user's machine.
+- **Math semantic graph per book.** Four node types (variable,
+  formula, passage, concept), eleven edge types (uses, binds, defines,
+  contains, references, derived\_from, specializes, related\_to,
+  instance\_of, about, paired\_in\_clause), persisted as a per-book
+  JSON sidecar that is monotone across rebuilds.
+- **Eight typed visual primitives** emitted per spoken clause —
+  passage card, book figure, canonical diagram from a 12-entry curated
+  library, fall-back local-LLM SVG, formula card with sub-expression
+  containment folded, reference card for in-text mentions, math note,
+  and chapter-zoom map.
+- **Three-tier quality assurance** — a data-quality inspector audits
+  every ingested book offline, a runtime SVG inspector accepts or
+  rejects every emitted figure, and an end-to-end smoke harness
+  exercises the live server against scripted scenarios.  A
+  cross-cutting math-fidelity agent crops the source PDF region around
+  every cite marker, asks the local vision model whether the parsed
+  LaTeX matches the rendered image, and asks the text LLM to repair on
+  mismatch.
+- **Reproducible evaluation.** Six metrics (M1 – M6) under
+  `bench/eval/` produce one JSON record per metric and one auto-built
+  LaTeX fragment per table.  The paper's per-method comparison tables
+  are generated mechanically from those JSON records.
+
+---
+
+## Repository layout
+
+```
+.
+├── book/             Book intermediate representation (parser, corpus,
+│                     concept index, alias map, embeddings hooks)
+├── narrator/         Per-clause narrator: ten-intent router, planner,
+│                     concept and formula explanation layers, Q&A
+│                     synthesis, narration sanitiser, Kokoro TTS worker
+├── serve/            HTTP / SSE server, orchestrator, session manager,
+│                     ASR endpoint, on-demand figure cropping,
+│                     persistence
+├── viz/              Visualisation: 12 curated SVG generators,
+│                     structural / VLM inspector, operation vocabulary,
+│                     chapter-map renderer, edge styles
+├── chalkboard/       Browser-side chalkboard module (audio-clock loop,
+│                     per-clause timeline, rAF sync engine)
+├── sevim/            SeVim diagram engine — the math semantic graph
+│                     builder, deterministic SVG layout, and ESLII
+│                     formula-fidelity tooling.  Has its own README
+│                     under sevim/README.md
+├── tools/            Offline builders (chapter map, concept layer,
+│                     formula explanations, math graph, SeVim
+│                     diagrams), the data-quality inspector
+│                     (data_quality_agent), the smoke harness
+│                     (smoke_agent), the math-fidelity agent
+│                     (fidelity_agent), and the figure / equation
+│                     re-ingestion tools
+├── bench/eval/       Journal-grade evaluation harness — six driver
+│                     scripts (M1 – M6), raw JSON results, generated
+│                     LaTeX fragments, the verbatim Sonnet-judge rubric,
+│                     and a per-run cost ledger
+├── service/          Service entry points (e.g. multi-book server)
+├── tests/            705 deterministic unit / system tests
+├── discovery/        Design notes (math-graph plan, inspector design,
+│                     visual relation QA gallery)
+├── paper/            Manuscript source (LaTeX) + figures + bibliography
+└── books/            Per-book artefacts (corpus JSON, math graph, figures
+                      sidecar, chapter-map sidecars, …)  --- gitignored
+                      because the source PDFs are copyrighted
+```
+
+---
+
+## Quick start
+
+### Prerequisites
+
+- Python 3.10+
+- `pip install -e .` to install the runtime in development mode
+- A Linux-style box with reasonable RAM
+- A workstation GPU is recommended for the full local model fabric;
+  the runtime degrades gracefully when individual model servers are
+  unreachable
+- Optional: vLLM endpoints for the text LLM, the vision-language
+  inspector, and the embedding model; Kokoro for TTS
+
+### Run an end-to-end ingestion + serve
+
+```bash
+# Install
+pip install -e .
+
+# Drop a copyrighted PDF into books/ — say, ESLII.pdf
+cp /path/to/ESLII.pdf books/
+
+# Run the full offline pipeline (parse, concept layer, math graph,
+# per-chapter sidecars, data-quality inspector, math-fidelity agent)
+python -m tools.ingest_agent books/ESLII.pdf
+
+# Start the multi-book server
+python -m serve.server books/ESLII.json
+# Browse to http://127.0.0.1:8001
+```
+
+The server tolerates missing model servers — it falls back to
+retrieval-only Q&A when the text LLM endpoint is unreachable, and to
+the heuristic Unicode→LaTeX path when the vision-language equation OCR
+sidecar is absent.
+
+### Reproduce the paper's evaluation
+
+```bash
+# Run every objective metric (M1 – M5)
+.venv/bin/python bench/eval/drivers/m1_routing.py
+.venv/bin/python bench/eval/drivers/m2_retrieval.py
+.venv/bin/python bench/eval/drivers/m3_viz_ops.py
+.venv/bin/python bench/eval/drivers/m4_graph_coverage.py
+.venv/bin/python bench/eval/drivers/m5_inline_math.py
+
+# Optional: M6 narration-quality LLM judge (Claude Sonnet 4.6).
+# Requires an Anthropic API key in the environment; capped at USD 20
+# by the cost ledger.
+export ANTHROPIC_API_KEY=sk-ant-...
+pip install anthropic
+.venv/bin/python bench/eval/drivers/m6_narration_judge.py
+
+# Regenerate the paper's LaTeX table fragments from the JSON results
+.venv/bin/python bench/eval/build_tables.py
+```
+
+Each driver writes one JSON record into `bench/eval/results/`, and
+`build_tables.py` rebuilds the paper-side `paper/tables/*.tex`
+fragments mechanically.  The paper's headline numbers (Table 16 in
+the manuscript) are produced by `build_summary` from those JSON
+records.
+
+### Run the test suite
+
+```bash
+pytest -q
+```
+
+There are currently 705 deterministic tests covering the router, the
+math-graph builders, the cross-tangent dedup contract, the
+narration-after-question SSE harness, the per-clause primitive
+detectors, and a property-based determinism suite.
+
+---
+
+## Architecture in one paragraph
+
+A click on a topic, chapter or section in the live UI is classified
+by a regex-cascade router into one of ten teaching intents.  The
+router resolves the intent to a `NarrationPlan` — a deterministic,
+ordered list of clauses anchored at book nodes.  An orchestrator
+streams clauses one at a time: each clause is sent to Kokoro for TTS,
+to a per-clause primitive-detection cascade (inline-math, operation
+vocabulary, reference patterns), and to the math semantic graph for
+formula / variable / concept lookup.  Every detected primitive becomes
+a typed visual op the frontend renders against the audio clock; ghost
+cards are dropped for cross-section formulas the current passage
+references, with semantic connectors drawn between endpoints.  When
+the corpus has no figure for a topic, the visualisation registry
+selects a curated SVG generator by sentence-embedding similarity and
+falls through to a local-LLM-synthesised SVG inspected for structural
+and visual fidelity.
+
+---
+
+## Reading order for the code base
+
+If you want to understand the system end-to-end, read the modules in
+this order:
+
+1. `book/ir.py` — the data model
+2. `book/parse.py` and `book/corpus.py` — how a PDF becomes the IR
+3. `narrator/router.py` — the ten-intent classifier (rule-based)
+4. `narrator/planner.py` — BM25 + dense + RRF retrieval and the
+   depth-decay outline planner
+5. `serve/orchestrator.py` — the per-clause emission pipeline (the
+   long file at the heart of the system)
+6. `viz/operations.py` and `viz/generators.py` — the operation
+   vocabulary and the 12-entry curated registry
+7. `sevim/math_graph.py` and `sevim/math_graph_phase1.py` — the
+   offline graph builder
+8. `tools/ingest_agent.py` and the auto-pipeline phases under
+   `serve/ingest_pipeline.py` — what runs when a new book is uploaded
+9. `bench/eval/` — the journal-grade evaluation harness
+
+---
+
+## Authors
+
+- **Arash Kermani Kolankeh** (corresponding author),
+  School of Engineering, Applied Science, and Technology (SEAST),
+  Canadian University Dubai.
+  ORCID [0009-0003-6494-414X](https://orcid.org/0009-0003-6494-414X).
+- **Rita Zgheib**, Canadian University Dubai.
+  ORCID [0000-0001-6301-8783](https://orcid.org/0000-0001-6301-8783).
 
 ---
 
 ## License
 
-CC BY-NC 4.0 — free for research and non-commercial use with attribution.
-License will be updated to MIT upon paper acceptance.
+This repository is licensed under the
+[Creative Commons Attribution–NonCommercial 4.0 International
+license (CC BY-NC 4.0)](LICENSE) while the accompanying paper is
+under review.  Upon paper acceptance the license will be updated to
+MIT.
+
+You are free to share and adapt the material for non-commercial
+purposes with appropriate attribution.  **Please cite the paper**
+(see the [Citation](#citation) section above) in any work that uses
+this code, the math semantic graph design, the evaluation harness,
+or any of the per-book artefacts.
+
+---
+
+## Acknowledgements
+
+This work uses *The Elements of Statistical Learning* (Hastie,
+Tibshirani, Friedman, 2nd ed.) as the working corpus.  The corpus
+itself is copyrighted and is not redistributed in this repository;
+the publisher's freely available author-hosted copy is referenced in
+the paper's bibliography.
+
+The bundled SeVim diagram engine is a separate scientific
+contribution; see `sevim/README.md` and the SeVim Zenodo preprint
+([10.5281/zenodo.20011107](https://doi.org/10.5281/zenodo.20011107))
+for the standalone description.
+
+The implementation was prepared with the help of generative AI
+writing assistants (Anthropic Claude) for prose editing,
+copy-editing, and reconciling numerical claims against the working
+tree.  All scientific contributions, design decisions and reported
+results are the authors' own.

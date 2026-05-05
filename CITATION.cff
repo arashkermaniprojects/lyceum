@@ -1,35 +1,71 @@
 cff-version: 1.2.0
-message: "If you use SeVim in your research, please cite the paper below."
-title: "SeVim: Deterministic Semantic-to-Visual Mapping for Educational Diagrams"
+message: >
+  If you use Lyceum, the math semantic graph design, the evaluation
+  harness, or any of the material in this repository in your research,
+  please cite the paper below.  Citation details below are placeholders
+  until the paper is accepted; they will be updated with the journal
+  reference, DOI, volume / issue / pages on publication.
+title: >
+  Lyceum: a fully-local multimodal system for narrated visualisation
+  of mathematical textbooks
 authors:
   - family-names: "Kermani Kolankeh"
     given-names: "Arash"
-    affiliation: "School of Engineering, Applied Science, and Technology (SEAST), Canadian University Dubai"
+    affiliation: >
+      School of Engineering, Applied Science, and Technology (SEAST),
+      Canadian University Dubai
     email: arash.kolankeh@cud.ac.ae
+    orcid: "https://orcid.org/0009-0003-6494-414X"
+  - family-names: "Zgheib"
+    given-names: "Rita"
+    affiliation: "Canadian University Dubai"
+    orcid: "https://orcid.org/0000-0001-6301-8783"
 version: "0.1.0"
-repository-code: "https://github.com/arashkermaniprojects/sevim"
+repository-code: "https://github.com/arashkermaniprojects/lyceum"
 license: CC-BY-NC-4.0
 type: software
 abstract: >
-  SeVim is a five-stage neuro-symbolic pipeline that converts natural-language
-  educational text into deterministic, byte-reproducible SVG diagrams without
-  hallucination and without external API calls. It combines a rule-based
-  semantic triple extractor, a frozen Qwen2.5-7B encoder, and a deterministic
-  Sugiyama layout engine.
+  Lyceum is a fully-local multimodal system that ingests a static
+  mathematics or statistics PDF textbook and turns it into an
+  interactive, narrated whiteboard.  An offline pass builds a per-book
+  math semantic graph that captures every formula, variable, concept
+  and dependency before any narration starts; at run time, an
+  orchestrator queries the graph per spoken clause and emits a small
+  vocabulary of typed visual primitives (passage cards, book figures,
+  curated canonical diagrams, formula cards, reference cards and
+  cross-section connectors) timed against the audio clock.  A
+  three-tier quality-assurance suite audits every ingested book and a
+  self-healing loop repairs OCR-degraded formulas against the source
+  PDF.  No external API is reachable from any production process.
 keywords:
-  - knowledge graph
-  - SVG generation
+  - intelligent tutoring
+  - retrieval-augmented generation
+  - multimodal narration
+  - local LLM
+  - vision-language inspection
+  - math semantic graph
+  - deterministic SVG synthesis
   - educational technology
-  - neuro-symbolic
-  - deterministic layout
-  - information visualization
 preferred-citation:
   type: article
-  title: "SeVim: Deterministic Semantic-to-Visual Mapping for Educational Diagrams"
+  title: >
+    Lyceum: a fully-local multimodal system for narrated visualisation
+    of mathematical textbooks
   authors:
     - family-names: "Kermani Kolankeh"
       given-names: "Arash"
-  journal: "IEEE Transactions on Pattern Analysis and Machine Intelligence"
-  status: "under review"
-  year: 2026
-  url: "https://github.com/arashkermaniprojects/sevim"
+      orcid: "https://orcid.org/0009-0003-6494-414X"
+    - family-names: "Zgheib"
+      given-names: "Rita"
+      orcid: "https://orcid.org/0000-0001-6301-8783"
+  # PLACEHOLDERS — replace with the published journal reference on
+  # acceptance.
+  journal: "<TO BE FILLED IN ON ACCEPTANCE>"
+  year:    "<YEAR>"
+  volume:  "<VOLUME>"
+  issue:   "<ISSUE>"
+  start:   "<FIRST PAGE>"
+  end:     "<LAST PAGE>"
+  doi:     "<DOI>"
+  url:     "<URL>"
+  status:  "preprint"
