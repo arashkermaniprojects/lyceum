@@ -4500,10 +4500,10 @@ def _operation_card_svg(label: str, latex: str, w: float, h: float) -> str:
         f'<rect x="0" y="0" width="{w:.1f}" height="{h:.1f}" rx="6" '
         f'fill="#e0f2f1" stroke="#00897b" stroke-width="1.4"/>'
         f'<text x="{pad:.1f}" y="32" font-size="18" fill="#00695c" '
-        f'font-family="ui-sans-serif,sans-serif">operation</text>'
+        f'font-family="DejaVu Sans, ui-sans-serif, sans-serif">operation</text>'
         f'<text x="{pad:.1f}" y="62" font-size="22" fill="#004d40" '
         f'font-weight="700" '
-        f'font-family="ui-sans-serif,sans-serif">{safe_label}</text>'
+        f'font-family="DejaVu Sans, ui-sans-serif, sans-serif">{safe_label}</text>'
         f'<foreignObject x="{pad:.1f}" y="{_OPERATION_HEAD_BAND:.1f}" '
         f'width="{w - 2 * pad:.1f}" height="{math_h:.1f}" '
         f'overflow="visible">'
@@ -4677,7 +4677,7 @@ def _formula_card_svg(
     parts.append(
         f'<text x="{pad:.1f}" y="42" font-size="{_FORMULA_HEAD_FONT_PX}" '
         f'fill="#8e24aa" font-weight="600" '
-        f'font-family="ui-sans-serif,sans-serif">{safe_head}</text>'
+        f'font-family="DejaVu Sans, ui-sans-serif, sans-serif">{safe_head}</text>'
     )
     # Foreign object holds the KaTeX render.  We size the box from the
     # *same* deterministic estimator that ``_formula_card_size`` used
@@ -4716,7 +4716,7 @@ def _formula_card_svg(
             f'<foreignObject x="{pad:.1f}" y="{cursor_y:.1f}" '
             f'width="{w - 2 * pad:.1f}" height="{meaning_h:.1f}">'
             f'<div xmlns="http://www.w3.org/1999/xhtml" '
-            f'style="font-family:ui-sans-serif,sans-serif; '
+            f'style="font-family:DejaVu Sans, ui-sans-serif, sans-serif; '
             f'font-size:{_FORMULA_MEANING_FONT_PX}px; line-height:1.35; '
             f'color:#6a1b9a; font-style:italic; '
             f'padding-top:2px;">{safe_meaning}</div>'
@@ -4733,7 +4733,7 @@ def _formula_card_svg(
             parts.append(
                 f'<text x="{pad:.1f}" y="{y:.1f}" '
                 f'font-size="{_FORMULA_VARDEF_FONT_PX}" fill="#4a148c" '
-                f'font-family="ui-sans-serif,sans-serif">{safe_line}</text>'
+                f'font-family="DejaVu Sans, ui-sans-serif, sans-serif">{safe_line}</text>'
             )
             y += _FORMULA_VARDEF_LINE_H
     return "".join(parts)
@@ -4984,9 +4984,9 @@ def _canonical_card_svg(
         f'<rect x="0" y="0" width="{outer_w:.1f}" height="{outer_h:.1f}" '
         f'rx="6" fill="#fff" stroke="#7e57c2" stroke-width="1.4"/>'
         f'<text x="12" y="20" font-size="11" fill="#5e35b1" '
-        f'font-family="ui-sans-serif,sans-serif">{badge} · {safe_topic}</text>'
+        f'font-family="DejaVu Sans, ui-sans-serif, sans-serif">{badge} · {safe_topic}</text>'
         f'<text x="12" y="40" font-size="14" fill="#212121" font-weight="600" '
-        f'font-family="ui-sans-serif,sans-serif">{safe_title}</text>'
+        f'font-family="DejaVu Sans, ui-sans-serif, sans-serif">{safe_title}</text>'
         f'<svg x="12" y="48" width="{inner_w:.1f}" height="{inner_h:.1f}" '
         f'viewBox="0 0 {inner_w:.0f} {inner_h:.0f}">{inner_svg}</svg>'
     )
@@ -5016,11 +5016,11 @@ def _book_figure_card_svg(fig, owning_node, w: float, h: float) -> str:
         f'<rect x="0" y="0" width="{w:.1f}" height="{h:.1f}" rx="6" '
         f'fill="#fff" stroke="#90a4ae" stroke-width="1.4"/>'
         f'<text x="12" y="20" font-size="11" fill="#546e7a" '
-        f'font-family="ui-sans-serif,sans-serif">book figure · {pg}</text>'
+        f'font-family="DejaVu Sans, ui-sans-serif, sans-serif">book figure · {pg}</text>'
         f'<image href="{href}" x="12" y="28" width="{w - 24:.1f}" height="{h - 56:.1f}" '
         f'preserveAspectRatio="xMidYMid meet"/>'
         f'<text x="12" y="{h - 10:.1f}" font-size="11" fill="#37474f" '
-        f'font-family="ui-sans-serif,sans-serif">{safe_cap}</text>'
+        f'font-family="DejaVu Sans, ui-sans-serif, sans-serif">{safe_cap}</text>'
     )
 
 
@@ -5172,11 +5172,11 @@ def _render_uncertain_equation_card(
         f'<rect x="0" y="0" width="{w:.1f}" height="{h:.1f}" rx="6" '
         f'fill="{fill}" stroke="{stroke}" stroke-width="1.4"/>'
         f'<text x="12" y="20" font-size="11" fill="{stroke}" '
-        f'font-family="ui-sans-serif,sans-serif">{xml_escape(kind.lower())}</text>'
+        f'font-family="DejaVu Sans, ui-sans-serif, sans-serif">{xml_escape(kind.lower())}</text>'
         f'<text x="12" y="44" font-size="14" fill="{ink}" font-weight="600" '
-        f'font-family="ui-sans-serif,sans-serif">{safe_title}</text>'
+        f'font-family="DejaVu Sans, ui-sans-serif, sans-serif">{safe_title}</text>'
         f'<text x="12" y="76" font-size="12" fill="{ink}" '
-        f'font-family="ui-sans-serif,sans-serif">{safe_note}</text>'
+        f'font-family="DejaVu Sans, ui-sans-serif, sans-serif">{safe_note}</text>'
     )
     return body, w, h
 
@@ -5224,9 +5224,9 @@ def _render_text_equation_card(
         f'<rect x="0" y="0" width="{w:.1f}" height="{h:.1f}" rx="6" '
         f'fill="{fill}" stroke="{stroke}" stroke-width="1.4"/>'
         f'<text x="12" y="20" font-size="11" fill="{stroke}" '
-        f'font-family="ui-sans-serif,sans-serif">{_xml_escape(kind.lower())}</text>'
+        f'font-family="DejaVu Sans, ui-sans-serif, sans-serif">{_xml_escape(kind.lower())}</text>'
         f'<text x="12" y="40" font-size="14" fill="{ink}" font-weight="600" '
-        f'font-family="ui-sans-serif,sans-serif">{safe_title}</text>'
+        f'font-family="DejaVu Sans, ui-sans-serif, sans-serif">{safe_title}</text>'
     )
     y = 56.0 + line_h
     for ln in lines:
@@ -5295,12 +5295,12 @@ def _render_equation_ref_card_with_annotations(
         head_left += "  ·  " + ", ".join(cite_labels)
     parts.append(
         f'<text x="12" y="20" font-size="11" fill="{stroke}" '
-        f'font-family="ui-sans-serif,sans-serif">'
+        f'font-family="DejaVu Sans, ui-sans-serif, sans-serif">'
         f'{_xml_escape(head_left)}</text>'
     )
     parts.append(
         f'<text x="12" y="40" font-size="14" fill="{ink}" font-weight="600" '
-        f'font-family="ui-sans-serif,sans-serif">{safe_title}</text>'
+        f'font-family="DejaVu Sans, ui-sans-serif, sans-serif">{safe_title}</text>'
     )
 
     if use_katex:
@@ -5333,7 +5333,7 @@ def _render_equation_ref_card_with_annotations(
     for sym, defn in var_defs:
         parts.append(
             f'<text x="12" y="{y:.1f}" font-size="11" fill="{ink}" '
-            f'font-family="ui-sans-serif,sans-serif">'
+            f'font-family="DejaVu Sans, ui-sans-serif, sans-serif">'
             f'{_xml_escape(f"{sym}: {defn}")}</text>'
         )
         y += 16.0
@@ -5366,13 +5366,13 @@ def _render_math_note_card(
     )
     parts.append(
         f'<text x="12" y="20" font-size="11" fill="{stroke}" '
-        f'font-family="ui-sans-serif,sans-serif">math notation</text>'
+        f'font-family="DejaVu Sans, ui-sans-serif, sans-serif">math notation</text>'
     )
     y = 40.0
     for ln in lines:
         parts.append(
             f'<text x="12" y="{y:.1f}" font-size="13" fill="{ink}" '
-            f'font-family="ui-sans-serif,sans-serif">'
+            f'font-family="DejaVu Sans, ui-sans-serif, sans-serif">'
             f'{_xml_escape(ln)}</text>'
         )
         y += 18.0
@@ -5416,10 +5416,10 @@ def _render_prose_math_card(
         f'<rect x="0" y="0" width="{w:.1f}" height="{h:.1f}" rx="6" '
         f'fill="{fill}" stroke="{stroke}" stroke-width="1.4"/>'
         f'<text x="12" y="20" font-size="11" fill="{stroke}" '
-        f'font-family="ui-sans-serif,sans-serif">'
+        f'font-family="DejaVu Sans, ui-sans-serif, sans-serif">'
         f'{_xml_escape(kind.lower())}</text>'
         f'<text x="12" y="40" font-size="14" fill="{ink}" font-weight="600" '
-        f'font-family="ui-sans-serif,sans-serif">{safe_title}</text>'
+        f'font-family="DejaVu Sans, ui-sans-serif, sans-serif">{safe_title}</text>'
     )
     parts.append(
         f'<foreignObject x="12" y="{base_h - 8:.1f}" '
@@ -5465,16 +5465,16 @@ def _render_reference_card(
             f'<rect x="0" y="0" width="{w:.1f}" height="{h:.1f}" rx="6" '
             f'fill="{fill}" stroke="{stroke}" stroke-width="1.4"/>'
             f'<text x="12" y="20" font-size="11" fill="{stroke}" '
-            f'font-family="ui-sans-serif,sans-serif">{_xml_escape(content.kind.lower())}</text>'
+            f'font-family="DejaVu Sans, ui-sans-serif, sans-serif">{_xml_escape(content.kind.lower())}</text>'
             f'<text x="12" y="40" font-size="14" fill="{ink}" font-weight="600" '
-            f'font-family="ui-sans-serif,sans-serif">{safe_title}</text>'
+            f'font-family="DejaVu Sans, ui-sans-serif, sans-serif">{safe_title}</text>'
             f'<image href="{href}" x="12" y="50" width="{w - 24:.1f}" height="{h - 80:.1f}" '
             f'preserveAspectRatio="xMidYMid meet"/>'
         )
         if cap:
             body += (
                 f'<text x="12" y="{h - 10:.1f}" font-size="11" fill="{ink}" '
-                f'font-family="ui-sans-serif,sans-serif">{cap}</text>'
+                f'font-family="DejaVu Sans, ui-sans-serif, sans-serif">{cap}</text>'
             )
         return body, w, h
 
@@ -5526,9 +5526,9 @@ def _render_reference_card(
             f'<rect x="0" y="0" width="{w:.1f}" height="{h:.1f}" rx="6" '
             f'fill="{fill}" stroke="{stroke}" stroke-width="1.4"/>'
             f'<text x="12" y="20" font-size="11" fill="{stroke}" '
-            f'font-family="ui-sans-serif,sans-serif">{_xml_escape(content.kind.lower())}</text>'
+            f'font-family="DejaVu Sans, ui-sans-serif, sans-serif">{_xml_escape(content.kind.lower())}</text>'
             f'<text x="12" y="40" font-size="14" fill="{ink}" font-weight="600" '
-            f'font-family="ui-sans-serif,sans-serif">{safe_title}</text>'
+            f'font-family="DejaVu Sans, ui-sans-serif, sans-serif">{safe_title}</text>'
             f'<foreignObject x="12" y="48" width="{fo_w:.1f}" height="{fo_h:.1f}">'
             f'<div xmlns="http://www.w3.org/1999/xhtml" class="math-card" '
             f'data-latex="{safe_latex}" '
@@ -5567,9 +5567,9 @@ def _render_reference_card(
             f'<rect x="0" y="0" width="{w:.1f}" height="{h:.1f}" rx="6" '
             f'fill="{fill}" stroke="{stroke}" stroke-width="1.4"/>'
             f'<text x="12" y="20" font-size="11" fill="{stroke}" '
-            f'font-family="ui-sans-serif,sans-serif">{_xml_escape(content.kind.lower())}</text>'
+            f'font-family="DejaVu Sans, ui-sans-serif, sans-serif">{_xml_escape(content.kind.lower())}</text>'
             f'<text x="12" y="40" font-size="14" fill="{ink}" font-weight="600" '
-            f'font-family="ui-sans-serif,sans-serif">{safe_title}</text>'
+            f'font-family="DejaVu Sans, ui-sans-serif, sans-serif">{safe_title}</text>'
         )
         y = 56.0
         for line in wrapped:
@@ -5586,9 +5586,9 @@ def _render_reference_card(
         f'<rect x="0" y="0" width="{w:.1f}" height="{h:.1f}" rx="6" '
         f'fill="{fill}" stroke="{stroke}" stroke-width="1.4"/>'
         f'<text x="12" y="20" font-size="11" fill="{stroke}" '
-        f'font-family="ui-sans-serif,sans-serif">reference · {_xml_escape(content.kind.lower())}</text>'
+        f'font-family="DejaVu Sans, ui-sans-serif, sans-serif">reference · {_xml_escape(content.kind.lower())}</text>'
         f'<text x="12" y="44" font-size="14" fill="{ink}" font-weight="600" '
-        f'font-family="ui-sans-serif,sans-serif">{safe_title}</text>'
+        f'font-family="DejaVu Sans, ui-sans-serif, sans-serif">{safe_title}</text>'
     )
     return body, w, h
 
@@ -5603,9 +5603,9 @@ def _passage_card_svg(label: str, kind: str, w: float, h: float) -> str:
         f'<rect x="0" y="0" width="{w:.1f}" height="{h:.1f}" rx="6" '
         f'fill="#fff8e1" stroke="#fbc02d" stroke-width="1.4"/>'
         f'<text x="12" y="20" font-size="11" fill="#827717" '
-        f'font-family="ui-sans-serif,sans-serif">passage · {kind}</text>'
+        f'font-family="DejaVu Sans, ui-sans-serif, sans-serif">passage · {kind}</text>'
         f'<text x="12" y="44" font-size="14" fill="#222" font-weight="600" '
-        f'font-family="ui-sans-serif,sans-serif">{safe}</text>'
+        f'font-family="DejaVu Sans, ui-sans-serif, sans-serif">{safe}</text>'
     )
 
 

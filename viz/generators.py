@@ -58,12 +58,12 @@ def overfitting_curve(*, seed: int = 0) -> GenResult:
     canvas.add(
         f'<text x="{ax.to_px(2):.1f}" y="{ax.to_py(0.92):.1f}" '
         f'fill="{PALETTE["muted"]}" font-size="11" '
-        f'font-family="ui-sans-serif,sans-serif">underfit</text>'
+        f'font-family="DejaVu Sans, ui-sans-serif, sans-serif">underfit</text>'
     )
     canvas.add(
         f'<text x="{ax.to_px(8.5):.1f}" y="{ax.to_py(0.92):.1f}" '
         f'fill="{PALETTE["muted"]}" font-size="11" '
-        f'font-family="ui-sans-serif,sans-serif">overfit</text>'
+        f'font-family="DejaVu Sans, ui-sans-serif, sans-serif">overfit</text>'
     )
     return GenResult(
         svg_body=canvas.render_body(), width=W, height=H,
@@ -104,7 +104,7 @@ def bias_variance(*, seed: int = 0) -> GenResult:
     canvas.add(
         f'<text x="{ax.to_px(8.4):.1f}" y="{ax.to_py(irred + 0.02):.1f}" '
         f'fill="{PALETTE["muted"]}" font-size="11" '
-        f'font-family="ui-sans-serif,sans-serif">irreducible σ²</text>'
+        f'font-family="DejaVu Sans, ui-sans-serif, sans-serif">irreducible σ²</text>'
     )
     return GenResult(
         svg_body=canvas.render_body(), width=W, height=H,
@@ -140,12 +140,12 @@ def roc_curve(*, seed: int = 0) -> GenResult:
     canvas.add(
         f'<text x="{ax.to_px(0.55):.1f}" y="{ax.to_py(0.20):.1f}" '
         f'fill="{PALETTE["train"]}" font-size="13" font-weight="600" '
-        f'font-family="ui-sans-serif,sans-serif">AUC = {auc:.2f}</text>'
+        f'font-family="DejaVu Sans, ui-sans-serif, sans-serif">AUC = {auc:.2f}</text>'
     )
     canvas.add(
         f'<text x="{ax.to_px(0.55):.1f}" y="{ax.to_py(0.55):.1f}" '
         f'fill="{PALETTE["muted"]}" font-size="11" '
-        f'font-family="ui-sans-serif,sans-serif">random guess</text>'
+        f'font-family="DejaVu Sans, ui-sans-serif, sans-serif">random guess</text>'
     )
     return GenResult(
         svg_body=canvas.render_body(), width=W, height=H,
@@ -165,7 +165,7 @@ def kfold_split(*, seed: int = 0, k: int = 5) -> GenResult:
     canvas.add(
         f'<text x="{W/2:.1f}" y="22" text-anchor="middle" '
         f'font-size="13" font-weight="600" fill="{PALETTE["ink"]}" '
-        f'font-family="ui-sans-serif,sans-serif">k-fold cross-validation '
+        f'font-family="DejaVu Sans, ui-sans-serif, sans-serif">k-fold cross-validation '
         f'(k = {k})</text>'
     )
     pad_l, pad_r, top, bottom = 60.0, 16.0, 40.0, 24.0
@@ -176,7 +176,7 @@ def kfold_split(*, seed: int = 0, k: int = 5) -> GenResult:
         canvas.add(
             f'<text x="{pad_l - 8:.1f}" y="{y + row_h*0.65:.1f}" '
             f'text-anchor="end" font-size="11" fill="{PALETTE["muted"]}" '
-            f'font-family="ui-sans-serif,sans-serif">iter {i+1}</text>'
+            f'font-family="DejaVu Sans, ui-sans-serif, sans-serif">iter {i+1}</text>'
         )
         for j in range(k):
             cell_x = pad_l + (j / k) * track_w
@@ -194,7 +194,7 @@ def kfold_split(*, seed: int = 0, k: int = 5) -> GenResult:
                 f'<text x="{cell_x + cell_w/2:.1f}" '
                 f'y="{y + row_h/2 + 4:.1f}" '
                 f'text-anchor="middle" font-size="10" fill="#fff" '
-                f'font-family="ui-sans-serif,sans-serif">{label}</text>'
+                f'font-family="DejaVu Sans, ui-sans-serif, sans-serif">{label}</text>'
             )
     # Legend.
     lx, ly = pad_l, H - 14.0
@@ -203,14 +203,14 @@ def kfold_split(*, seed: int = 0, k: int = 5) -> GenResult:
         f'fill="{PALETTE["train"]}"/>'
         f'<text x="{lx + 16:.1f}" y="{ly - 1:.1f}" font-size="11" '
         f'fill="{PALETTE["ink"]}" '
-        f'font-family="ui-sans-serif,sans-serif">training fold</text>'
+        f'font-family="DejaVu Sans, ui-sans-serif, sans-serif">training fold</text>'
     )
     canvas.add(
         f'<rect x="{lx + 110:.1f}" y="{ly - 9:.1f}" width="12" height="9" '
         f'fill="{PALETTE["test"]}"/>'
         f'<text x="{lx + 126:.1f}" y="{ly - 1:.1f}" font-size="11" '
         f'fill="{PALETTE["ink"]}" '
-        f'font-family="ui-sans-serif,sans-serif">held-out test fold</text>'
+        f'font-family="DejaVu Sans, ui-sans-serif, sans-serif">held-out test fold</text>'
     )
     return GenResult(
         svg_body=canvas.render_body(), width=W, height=H,
@@ -266,7 +266,7 @@ def gradient_descent(*, seed: int = 0) -> GenResult:
     canvas.add(
         f'<text x="{ax.to_px(0):.1f}" y="{ax.to_py(0) - 8:.1f}" '
         f'text-anchor="middle" font-size="11" fill="{PALETTE["bias"]}" '
-        f'font-family="ui-sans-serif,sans-serif">minimum</text>'
+        f'font-family="DejaVu Sans, ui-sans-serif, sans-serif">minimum</text>'
     )
     return GenResult(
         svg_body=canvas.render_body(), width=W, height=H,
@@ -355,7 +355,7 @@ def back_propagation(*, seed: int = 0) -> GenResult:
     canvas.add(
         f'<text x="{W/2:.1f}" y="22" text-anchor="middle" '
         f'font-size="13" font-weight="600" fill="{PALETTE["ink"]}" '
-        f'font-family="ui-sans-serif,sans-serif">Back-propagation '
+        f'font-family="DejaVu Sans, ui-sans-serif, sans-serif">Back-propagation '
         f'(forward → loss → gradient ←)</text>'
     )
     layer_sizes = [3, 4, 4, 2]
@@ -407,7 +407,7 @@ def back_propagation(*, seed: int = 0) -> GenResult:
         f'<text x="{(pad_l + W - pad_r)/2:.1f}" y="{top - 22:.1f}" '
         f'text-anchor="middle" font-size="12" fill="{PALETTE["train"]}" '
         f'font-weight="600" '
-        f'font-family="ui-sans-serif,sans-serif">forward pass</text>'
+        f'font-family="DejaVu Sans, ui-sans-serif, sans-serif">forward pass</text>'
     )
     # Backward arrow below the network.
     canvas.add(
@@ -419,7 +419,7 @@ def back_propagation(*, seed: int = 0) -> GenResult:
     canvas.add(
         f'<text x="{(pad_l + W - pad_r)/2:.1f}" y="{H - bot + 18:.1f}" '
         f'text-anchor="middle" font-size="12" fill="{PALETTE["test"]}" '
-        f'font-weight="600" font-family="ui-sans-serif,sans-serif">'
+        f'font-weight="600" font-family="DejaVu Sans, ui-sans-serif, sans-serif">'
         f'backward gradient ∂L/∂w</text>'
     )
     # Nodes.
@@ -432,7 +432,7 @@ def back_propagation(*, seed: int = 0) -> GenResult:
         canvas.add(
             f'<text x="{col[0][0]:.1f}" y="{H - bot - 4:.1f}" '
             f'text-anchor="middle" font-size="11" fill="{PALETTE["muted"]}" '
-            f'font-family="ui-sans-serif,sans-serif">{layer_labels[li]}</text>'
+            f'font-family="DejaVu Sans, ui-sans-serif, sans-serif">{layer_labels[li]}</text>'
         )
     # Loss node at far right.
     out_x = layer_x[-1] + 50
@@ -443,7 +443,7 @@ def back_propagation(*, seed: int = 0) -> GenResult:
         f'stroke="{PALETTE["variance"]}" stroke-width="1.6"/>'
         f'<text x="{out_x:.1f}" y="{out_y + 5:.1f}" text-anchor="middle" '
         f'font-size="13" font-weight="600" fill="{PALETTE["variance"]}" '
-        f'font-family="ui-sans-serif,sans-serif">L</text>'
+        f'font-family="DejaVu Sans, ui-sans-serif, sans-serif">L</text>'
     )
     for x, y in node_pos[-1]:
         canvas.add(
@@ -500,7 +500,7 @@ def weight_matrix(*, seed: int = 0) -> GenResult:
     canvas.add(
         f'<text x="{W/2:.1f}" y="22" text-anchor="middle" '
         f'font-size="13" font-weight="600" fill="{PALETTE["ink"]}" '
-        f'font-family="ui-sans-serif,sans-serif">Weight matrix W: '
+        f'font-family="DejaVu Sans, ui-sans-serif, sans-serif">Weight matrix W: '
         f'connections from one layer to the next</text>'
     )
     # Left layer (input nodes) and right layer (output nodes).
@@ -546,12 +546,12 @@ def weight_matrix(*, seed: int = 0) -> GenResult:
     canvas.add(
         f'<text x="{in_x:.1f}" y="{plot_top - 12:.1f}" '
         f'text-anchor="middle" font-size="11" fill="{PALETTE["muted"]}" '
-        f'font-family="ui-sans-serif,sans-serif">input layer (n={n_in})</text>'
+        f'font-family="DejaVu Sans, ui-sans-serif, sans-serif">input layer (n={n_in})</text>'
     )
     canvas.add(
         f'<text x="{out_x:.1f}" y="{plot_top - 12:.1f}" '
         f'text-anchor="middle" font-size="11" fill="{PALETTE["muted"]}" '
-        f'font-family="ui-sans-serif,sans-serif">output (n={n_out})</text>'
+        f'font-family="DejaVu Sans, ui-sans-serif, sans-serif">output (n={n_out})</text>'
     )
     # Weight matrix display on the right.
     mat_x = out_x + 50.0
@@ -589,14 +589,14 @@ def weight_matrix(*, seed: int = 0) -> GenResult:
         f'<text x="{mat_x + cell_w * n_in / 2:.1f}" '
         f'y="{mat_y + bracket_h + 16:.1f}" text-anchor="middle" '
         f'font-size="12" fill="{PALETTE["ink"]}" '
-        f'font-family="ui-sans-serif,sans-serif">'
+        f'font-family="DejaVu Sans, ui-sans-serif, sans-serif">'
         f'W ({n_out} × {n_in})</text>'
     )
     canvas.add(
         f'<text x="{mat_x + cell_w * n_in / 2:.1f}" '
         f'y="{mat_y + bracket_h + 30:.1f}" text-anchor="middle" '
         f'font-size="11" fill="{PALETTE["muted"]}" '
-        f'font-family="ui-sans-serif,sans-serif">z = W x + b</text>'
+        f'font-family="DejaVu Sans, ui-sans-serif, sans-serif">z = W x + b</text>'
     )
     return GenResult(
         svg_body=canvas.render_body(), width=W, height=H,
@@ -632,7 +632,7 @@ def loss_function(*, seed: int = 0) -> GenResult:
         f'<text x="{ax.to_px(0):.1f}" y="{ax.to_py(0.4) - 10:.1f}" '
         f'text-anchor="middle" font-size="11" '
         f'fill="{PALETTE["bias"]}" '
-        f'font-family="ui-sans-serif,sans-serif">θ* (minimum)</text>'
+        f'font-family="DejaVu Sans, ui-sans-serif, sans-serif">θ* (minimum)</text>'
     )
     return GenResult(
         svg_body=canvas.render_body(), width=W, height=H,
@@ -671,7 +671,7 @@ def decision_boundary(*, seed: int = 0) -> GenResult:
     canvas.add(
         f'<text x="{ax.to_px(-2.7):.1f}" y="{ax.to_py(2.5):.1f}" '
         f'fill="{PALETTE["axis"]}" font-size="11" '
-        f'font-family="ui-sans-serif,sans-serif">decision boundary</text>'
+        f'font-family="DejaVu Sans, ui-sans-serif, sans-serif">decision boundary</text>'
     )
     return GenResult(
         svg_body=canvas.render_body(), width=W, height=H,

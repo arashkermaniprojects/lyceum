@@ -904,7 +904,7 @@ def _text(x: float, y: float, text: str, *,
     safe = _xml_escape(text)
     return (
         f'<text x="{x:.1f}" y="{y:.1f}" font-size="{size}" fill="{ink}" '
-        f'font-family="ui-sans-serif,sans-serif" '
+        f'font-family="DejaVu Sans, ui-sans-serif, sans-serif" '
         f'text-anchor="{anchor}" font-weight="{weight}">{safe}</text>'
     )
 

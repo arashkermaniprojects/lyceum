@@ -124,21 +124,21 @@ class Axes:
                 f'<text x="{cx:.1f}" y="{c.height - 8:.1f}" '
                 f'text-anchor="middle" font-size="12" '
                 f'fill="{PALETTE["axis"]}" '
-                f'font-family="ui-sans-serif,sans-serif">{_esc(self.x_label)}</text>'
+                f'font-family="DejaVu Sans, ui-sans-serif, sans-serif">{_esc(self.x_label)}</text>'
             )
         if self.y_label:
             cy = self.margin_t + h / 2
             c.add(
                 f'<text x="14" y="{cy:.1f}" text-anchor="middle" '
                 f'font-size="12" fill="{PALETTE["axis"]}" '
-                f'font-family="ui-sans-serif,sans-serif" '
+                f'font-family="DejaVu Sans, ui-sans-serif, sans-serif" '
                 f'transform="rotate(-90 14 {cy:.1f})">{_esc(self.y_label)}</text>'
             )
         if self.title:
             c.add(
                 f'<text x="{c.width/2:.1f}" y="18" text-anchor="middle" '
                 f'font-size="13" font-weight="600" fill="{PALETTE["ink"]}" '
-                f'font-family="ui-sans-serif,sans-serif">{_esc(self.title)}</text>'
+                f'font-family="DejaVu Sans, ui-sans-serif, sans-serif">{_esc(self.title)}</text>'
             )
 
     def polyline(
@@ -164,7 +164,7 @@ class Axes:
             self.canvas.add(
                 f'<text x="{self.to_px(lx):.1f}" y="{self.to_py(ly):.1f}" '
                 f'fill="{color}" font-size="12" font-weight="600" '
-                f'font-family="ui-sans-serif,sans-serif">{_esc(label)}</text>'
+                f'font-family="DejaVu Sans, ui-sans-serif, sans-serif">{_esc(label)}</text>'
             )
 
     def scatter(
@@ -192,6 +192,6 @@ class Axes:
             c.add(
                 f'<text x="{px:.1f}" y="{self.margin_t + 12:.1f}" '
                 f'text-anchor="middle" font-size="11" '
-                f'fill="{color}" font-family="ui-sans-serif,sans-serif">'
+                f'fill="{color}" font-family="DejaVu Sans, ui-sans-serif, sans-serif">'
                 f'{_esc(label)}</text>'
             )
