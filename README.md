@@ -1,11 +1,16 @@
 # Lyceum
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20043457.svg)](https://doi.org/10.5281/zenodo.20043457)
+[![Licence: CC BY-NC 4.0](https://img.shields.io/badge/licence-CC%20BY--NC%204.0-lightgrey.svg)](LICENSE)
+
 > **If you use this software, the math-semantic-graph design, the
 > evaluation harness, or any of the per-book artefacts in your
-> research, you MUST cite the accompanying paper.**  See the
-> [Citation](#citation) section below and the [`NOTICE`](NOTICE) file
-> at the repository root.  This is a condition of the licence (see
-> [`LICENSE`](LICENSE); CC BY-NC 4.0 requires attribution).
+> research, you MUST cite the accompanying paper
+> (DOI: [10.5281/zenodo.20043457](https://doi.org/10.5281/zenodo.20043457)).**
+> See the [Citation](#citation) section below and the
+> [`NOTICE`](NOTICE) file at the repository root.  This is a
+> condition of the licence (see [`LICENSE`](LICENSE); CC BY-NC 4.0
+> requires attribution).
 
 **A fully-local multimodal system that turns a static mathematics or
 statistics PDF textbook into an interactive, narrated whiteboard.**
@@ -23,33 +28,44 @@ No external API is reachable from any production process — the entire
 runtime stack (text LLM, vision-language inspector, sentence
 embedder, text-to-speech) is served on the user's own machine.
 
-> **Status:** the accompanying paper is currently under review.  This
-> repository ships the implementation, evaluation harness, and per-book
-> sidecars used to produce every numerical claim in the paper.
+> **Status:** the accompanying paper is published as a preprint on
+> Zenodo (DOI [10.5281/zenodo.20043457](https://doi.org/10.5281/zenodo.20043457),
+> 2026-05-05) and is currently under peer review for journal
+> publication.  This repository ships the implementation, evaluation
+> harness, and per-book sidecars used to produce every numerical
+> claim in the paper.
 
 ---
 
 ## Citation
+
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20043457.svg)](https://doi.org/10.5281/zenodo.20043457)
 
 If you use Lyceum, the math semantic graph design, the evaluation
 harness, or any of the material in this repository in your research,
 **please cite the paper**:
 
 ```bibtex
-@article{lyceum2026,
-  title    = {{Lyceum}: a fully-local multimodal system for narrated
-              visualisation of mathematical textbooks},
-  author   = {Kermani Kolankeh, Arash and Zgheib, Rita},
-  journal  = {<TO BE FILLED IN ON ACCEPTANCE>},
-  year     = {<YEAR>},
-  volume   = {<VOLUME>},
-  number   = {<ISSUE>},
-  pages    = {<PAGES>},
-  doi      = {<DOI>},
-  url      = {<URL>},
-  note     = {Preprint / under review at the time of writing}
+@misc{lyceum2026,
+  title     = {{Lyceum}: a fully-local multimodal system for narrated
+               visualisation of mathematical textbooks},
+  author    = {Kermani Kolankeh, Arash and Zgheib, Rita},
+  year      = {2026},
+  publisher = {Zenodo},
+  doi       = {10.5281/zenodo.20043457},
+  url       = {https://doi.org/10.5281/zenodo.20043457},
+  note      = {Preprint.  Version 1 archived as
+               doi:10.5281/zenodo.20043458}
 }
 ```
+
+The DOI above is the Zenodo *concept DOI* — it always resolves to
+the latest version of the preprint.  Use the version-pinned DOI
+`10.5281/zenodo.20043458` only when you need to refer to v1
+(2026-05-05) specifically.  When the manuscript is published in a
+peer-reviewed journal, this BibTeX block will be updated with the
+journal reference; the Zenodo DOI will remain valid as the archived
+preprint.
 
 The bundled SeVim diagram engine has its own citation under
 [`sevim/README.md`](sevim/README.md); please cite both when you use

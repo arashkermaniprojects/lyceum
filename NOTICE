@@ -4,10 +4,10 @@ Lyceum --- attribution and citation notice
 
 This software accompanies the academic paper
 
-    Kermani Kolankeh, A. and Zgheib, R.
+    Kermani Kolankeh, A. and Zgheib, R. (2026).
     "Lyceum: a fully-local multimodal system for narrated visualisation
      of mathematical textbooks."
-    <TO BE FILLED IN ON ACCEPTANCE> (year, volume, issue, pages, DOI).
+    Zenodo preprint, doi: 10.5281/zenodo.20043457.
 
 Anyone who reuses this software, the math-semantic-graph design, the
 evaluation harness, or any of the per-book artefacts --- whether
@@ -15,21 +15,27 @@ verbatim, in adapted form, or as the basis for further work --- must
 cite the paper above.  This is a condition of the licence
 (see LICENSE; CC BY-NC 4.0 requires attribution).
 
-Required citation (BibTeX placeholder; replace the bracketed fields
-with the published reference once the paper is accepted):
+Required citation (BibTeX):
 
-    @article{lyceum2026,
-      title    = {{Lyceum}: a fully-local multimodal system for
-                  narrated visualisation of mathematical textbooks},
-      author   = {Kermani Kolankeh, Arash and Zgheib, Rita},
-      journal  = {<TO BE FILLED IN ON ACCEPTANCE>},
-      year     = {<YEAR>},
-      volume   = {<VOLUME>},
-      number   = {<ISSUE>},
-      pages    = {<PAGES>},
-      doi      = {<DOI>},
-      url      = {<URL>}
+    @misc{lyceum2026,
+      title     = {{Lyceum}: a fully-local multimodal system for
+                   narrated visualisation of mathematical textbooks},
+      author    = {Kermani Kolankeh, Arash and Zgheib, Rita},
+      year      = {2026},
+      publisher = {Zenodo},
+      doi       = {10.5281/zenodo.20043457},
+      url       = {https://doi.org/10.5281/zenodo.20043457},
+      note      = {Preprint.  Version 1 archived as
+                   doi:10.5281/zenodo.20043458}
     }
+
+The DOI above is the Zenodo *concept DOI*, which always resolves to
+the latest version of the preprint.  The version-pinned DOI for v1
+(2026-05-05) is 10.5281/zenodo.20043458; cite that one only when you
+need to refer to a specific archived version.  When the journal
+version of the manuscript is published, this NOTICE will be updated
+with the journal reference; the Zenodo DOI will remain valid as the
+archived preprint and the citation requirement will not change.
 
 Please preserve this NOTICE file in any redistribution.
 
