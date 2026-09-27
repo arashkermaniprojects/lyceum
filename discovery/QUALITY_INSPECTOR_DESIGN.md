@@ -441,8 +441,8 @@ C. **books/ is .gitignored** in the lyceum code repo — copyrighted
    PDFs and per-user generated sidecars never enter the repo.
    Inspector should never try to git-add anything under `books/`.
 
-D. **paper/ is .gitignored** in the lyceum code repo — the paper has
-   its own private repo (`narrated-visualisation-of-mathematical-textbooks`).
+D. **paper/ is .gitignored** in the lyceum code repo — the manuscript
+   is not part of this repository.
    Inspector running in lyceum must not modify `paper/`.
 
 ---

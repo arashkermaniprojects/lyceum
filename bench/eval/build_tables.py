@@ -3,8 +3,8 @@
 Writes ``bench/eval/tables/{m1_routing,m2_retrieval,m3_viz_ops,
 m4_graph_coverage,m5_inline_math,m6_narration_judge}.tex`` plus a
 combined ``measurement_summary.tex`` digest.  Tables use ``booktabs`` /
-``tabularx`` so they slot directly into the CAS Elsevier template
-already loaded by ``paper/lyceum.tex``.
+``tabularx`` so they can be included in any LaTeX document that
+loads those packages.
 """
 from __future__ import annotations
 
@@ -15,17 +15,6 @@ from pathlib import Path
 THIS = Path(__file__).resolve()
 sys.path.insert(0, str(THIS.parents[2]))                 # repo root
 from bench.eval._common import RESULTS, TABLES, latex_escape         # noqa: E402
-
-# The paper expects ``\input{tables/m1_routing}`` etc. to resolve from
-# inside ``paper/``.  When the manuscript working tree exists (i.e.
-# the author is running this from their local checkout that also has
-# the paper sources) we mirror every fragment to ``paper/tables/`` so
-# the paper build stays self-contained.  ``paper/`` is gitignored in
-# the public code repository, so for users who cloned the code repo
-# alone the mirror is silently skipped and the canonical fragments in
-# ``bench/eval/tables/`` are still produced.
-_PAPER_DIR = TABLES.parents[2] / "paper"
-PAPER_TABLES = _PAPER_DIR / "tables" if _PAPER_DIR.is_dir() else None
 
 
 def fmt_pct(x: float) -> str:
@@ -44,12 +33,6 @@ def write(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
     print(f"[tables] wrote {path.relative_to(THIS.parents[2])}")
-    # Mirror to paper/tables/ only if a local paper working tree exists
-    # (gitignored in the public code repository).
-    if PAPER_TABLES is not None:
-        paper_path = PAPER_TABLES / path.name
-        paper_path.parent.mkdir(parents=True, exist_ok=True)
-        paper_path.write_text(content, encoding="utf-8")
 
 
 # ---------------------------------------------------------------------------

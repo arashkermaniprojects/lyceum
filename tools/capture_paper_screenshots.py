@@ -1,11 +1,11 @@
-"""Capture the 5 screenshots referenced as placeholders in paper/lyceum.tex.
+"""Capture five illustrative UI screenshots of a running Lyceum server.
 
 Outputs:
-    paper/figures/fig_voice_input.png
-    paper/figures/fig_chapter_zoom_shot.png
-    paper/figures/fig_tangent_shot.png
-    paper/figures/fig_reference_card.png
-    paper/figures/fig_theorem_card.png
+    screenshots/fig_voice_input.png
+    screenshots/fig_chapter_zoom_shot.png
+    screenshots/fig_tangent_shot.png
+    screenshots/fig_reference_card.png
+    screenshots/fig_theorem_card.png
 
 Assumes the HTTP server is up on http://127.0.0.1:8001/ and that the
 text-LLM (port 8000) and embedding (port 8003) are reachable.
@@ -20,7 +20,7 @@ from playwright.sync_api import sync_playwright
 
 
 PROJECT = Path(__file__).resolve().parents[1]
-FIG_DIR = PROJECT / 'paper' / 'figures'
+FIG_DIR = PROJECT / 'screenshots'   # gitignored output directory
 BASE_URL = 'http://127.0.0.1:8001/'
 VIEWPORT = {'width': 1920, 'height': 1080}
 

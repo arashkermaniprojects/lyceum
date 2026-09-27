@@ -33,9 +33,7 @@ out.trace.json
 # Local Claude settings (project-specific, not for repo)
 .claude/
 
-# The paper lives in its own repo
-# (arashkermaniprojects/narrated-visualisation-of-mathematical-textbooks);
-# don't track its working copy here.
+# Manuscript working copy is not part of this repository.
 paper/
 
 # Books directory holds copyrighted PDFs (Sipser, ESLII, …) plus
@@ -49,8 +47,7 @@ books/
 # Local persisted session snapshots — per-user state, never share.
 .sevim/
 
-# Old paper drafts (LaTeX intermediates etc.) — superseded by the
-# paper repo.
+# Old drafts (LaTeX intermediates etc.).
 old/
 
 # Pytest cache.
@@ -64,3 +61,14 @@ health/
 # relation-grammar choices, and is not required to reproduce any
 # reported result).
 discovery/triples.jsonl
+
+# Local environment files (may hold API keys).
+.env
+.env*
+
+# Linter / type-checker caches.
+.ruff_cache/
+.mypy_cache/
+
+# Output of tools/capture_*_screenshots.py and tools/record_narration.py.
+screenshots/

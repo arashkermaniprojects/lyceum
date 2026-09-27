@@ -1,4 +1,4 @@
-"""End-to-end tests against the bundled TPAMI PDF.
+"""End-to-end tests against a local sample paper PDF (skipped when absent).
 
 These are smoke tests over the full book pipeline: parse → concepts →
 cross-refs → corpus serialise → corpus load → equivalence.
@@ -48,7 +48,7 @@ def test_extract_cross_refs_runs(tmp_path):
     b = parse_pdf(PDF_PATH, figures_dir=str(tmp_path / "figs"))
     b.concepts = extract_concepts(b)
     refs = extract_cross_refs(b)
-    # The TPAMI paper may or may not cite numbered theorems; we just
+    # The sample paper may or may not cite numbered theorems; we just
     # require the function to return a list.
     assert isinstance(refs, list)
 
@@ -78,7 +78,7 @@ def test_corpus_load_round_trip_preserves_tree(tmp_path):
 
 
 def test_corpus_size_is_reasonable(tmp_path):
-    """Sanity check: TPAMI paper should produce a corpus under ~5 MB."""
+    """Sanity check: the sample paper should produce a corpus under ~5 MB."""
     from book import parse_pdf, extract_concepts, write_corpus
     b = parse_pdf(PDF_PATH, figures_dir=str(tmp_path / "figs"))
     b.concepts = extract_concepts(b)

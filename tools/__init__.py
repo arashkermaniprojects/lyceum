@@ -43,8 +43,8 @@ Every script under this package is safe to run standalone:
     python -m tools.fidelity_agent books/ESLII.json --apply
     python -m tools.smoke_agent --book ESLII
 
-See the manuscript's ``Auto-pipeline on book upload`` section for the
-exact phase ordering applied to a freshly uploaded PDF.
+See ``serve/ingest_pipeline.py`` for the exact phase ordering applied
+to a freshly uploaded PDF.
 
 Citation
 --------

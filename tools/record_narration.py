@@ -19,7 +19,7 @@ Usage:
         --chapter "Ch 1: Regular Languages" \\
         --max-seconds 180 \\
         --width 1920 --height 1080 \\
-        --out paper/figures/lyceum_sipser_ch1.mp4
+        --out screenshots/lyceum_sipser_ch1.mp4
 """
 from __future__ import annotations
 

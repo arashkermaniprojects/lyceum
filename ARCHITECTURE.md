@@ -2,8 +2,7 @@
 
 > **Note:** This document replaces the prior design-spec draft. It is generated
 > directly from reading the source code in `sevim/` and describes what the
-> code *actually does*, not aspirational plans. Former design decisions are
-> preserved in `paper_tpami/` materials.
+> code *actually does*, not aspirational plans.
 
 **Version:** 0.1.0  
 **Package root:** `sevim/`  

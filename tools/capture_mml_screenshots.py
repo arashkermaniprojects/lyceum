@@ -1,16 +1,17 @@
-"""Capture replacement screenshots for the Lyceum paper against the MML
+"""Capture illustrative UI screenshots of Lyceum running against the MML
 corpus (Mathematics for Machine Learning, Deisenroth/Faisal/Ong, 2020).
 
 The original ESLII-based screenshots reproduced copyrighted body-text
-in their UI; MML is freely available and serves the same illustrative
-purpose without that risk.
+in their UI; MML serves the same illustrative purpose.  The MML PDF is
+still copyrighted (its free author-hosted copy is for personal use), so
+screenshots produced here should not be redistributed.
 
 Outputs:
-    paper/figures/mml_chapter_zoom_shot.png   — Ch 9 Linear Regression
-    paper/figures/mml_tangent_shot.png        — main + tangent
-    paper/figures/mml_reference_card.png      — passage card + ref
-    paper/figures/mml_live_clustered.png      — t≈180s SVM narration
-    paper/figures/mml_live_late.png           — t≈380s SVM narration
+    screenshots/mml_chapter_zoom_shot.png   — Ch 9 Linear Regression
+    screenshots/mml_tangent_shot.png        — main + tangent
+    screenshots/mml_reference_card.png      — passage card + ref
+    screenshots/mml_live_clustered.png      — t≈180s SVM narration
+    screenshots/mml_live_late.png           — t≈380s SVM narration
 
 Assumes the HTTP server is up on http://127.0.0.1:8001/ with MML.json,
 that vLLM (8000 text + 8003 embed) is reachable, and Kokoro TTS is
@@ -26,7 +27,7 @@ from playwright.sync_api import sync_playwright
 
 
 PROJECT = Path(__file__).resolve().parents[1]
-FIG_DIR = PROJECT / 'paper' / 'figures'
+FIG_DIR = PROJECT / 'screenshots'   # gitignored output directory
 BASE_URL = 'http://127.0.0.1:8001/'
 VIEWPORT = {'width': 1920, 'height': 1080}
 
