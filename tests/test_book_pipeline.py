@@ -10,7 +10,7 @@ import json
 import os
 import pytest
 
-PDF_PATH = "paper_tpami/main_tpami.pdf"
+PDF_PATH = "tests/data/sample_paper.pdf"
 
 
 def _pdf_available() -> bool:

@@ -94,11 +94,13 @@ record so GitHub's "Cite this repository" button works end-to-end.
   contains, references, derived\_from, specializes, related\_to,
   instance\_of, about, paired\_in\_clause), persisted as a per-book
   JSON sidecar that is monotone across rebuilds.
-- **Eight typed visual primitives** emitted per spoken clause —
-  passage card, book figure, canonical diagram from a 12-entry curated
-  library, fall-back local-LLM SVG, formula card with sub-expression
-  containment folded, reference card for in-text mentions, math note,
-  and chapter-zoom map.
+- **Nine typed visual primitives** emitted per spoken clause —
+  passage card, book figure, canonical diagram (from a 12-entry curated
+  library, an LLM-proposed diagram specification drawn by our own
+  renderer, or a deterministic text-to-diagram fallback), formula card
+  with sub-expression containment folded, operation card, reference
+  card for in-text mentions, math note, matrix bracket, and
+  chapter-zoom map.
 - **Three-tier quality assurance** — a data-quality inspector audits
   every ingested book offline, a runtime SVG inspector accepts or
   rejects every emitted figure, and an end-to-end smoke harness
@@ -265,13 +267,14 @@ streams clauses one at a time: each clause is sent to Kokoro for TTS,
 to a per-clause primitive-detection cascade (inline-math, operation
 vocabulary, reference patterns), and to the math semantic graph for
 formula / variable / concept lookup.  Every detected primitive becomes
-a typed visual op the frontend renders against the audio clock; ghost
-cards are dropped for cross-section formulas the current passage
-references, with semantic connectors drawn between endpoints.  When
+a typed visual op the frontend renders against the audio clock;
+semantic connectors are drawn between formula cards that are both on
+the board (edges to formulas from other sections are skipped).  When
 the corpus has no figure for a topic, the visualisation registry
-selects a curated SVG generator by sentence-embedding similarity and
-falls through to a local-LLM-synthesised SVG inspected for structural
-and visual fidelity.
+selects a curated SVG generator by sentence-embedding similarity; if
+none matches, it renders a diagram specification proposed by the local
+LLM (when available) or a deterministic text-to-diagram parse, each
+checked by a structural inspector.
 
 ---
 

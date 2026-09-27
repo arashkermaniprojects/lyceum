@@ -208,7 +208,7 @@ def test_plan_total_chars_and_dur_consistent():
 # Real-PDF smoke
 # ---------------------------------------------------------------------------
 
-PDF = "paper_tpami/main_tpami.pdf"
+PDF = "tests/data/sample_paper.pdf"
 
 
 @pytest.mark.skipif(not os.path.exists(PDF), reason="paper PDF missing")
