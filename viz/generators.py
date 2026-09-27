@@ -31,24 +31,27 @@ def overfitting_curve(*, seed: int = 0) -> GenResult:
     rng = random.Random(seed)
     W, H = 480.0, 300.0
     canvas = SVGCanvas(W, H)
+    xs = [d for d in range(1, 11)]
+    # Training error: monotonically decreasing toward zero.
+    train = [0.85 * math.exp(-0.45 * (d - 1)) + rng.uniform(-0.01, 0.01)
+             for d in xs]
+    # Test error: U-shaped (high underfit on left, rises right).  The
+    # quadratic term is kept small enough that the curve stays inside
+    # the plot frame; y_hi also grows with the data as a guard.
+    test = [0.85 * math.exp(-0.6 * (d - 1)) + 0.012 * (d - 3) ** 2
+            + rng.uniform(-0.015, 0.015) for d in xs]
     ax = Axes(
-        canvas, x_lo=0.5, x_hi=10.5, y_lo=0.0, y_hi=1.05,
+        canvas, x_lo=0.5, x_hi=10.5, y_lo=0.0,
+        y_hi=max(1.05, 1.08 * max(train + test)),
         x_label="model complexity (e.g. polynomial degree)",
         y_label="error",
         title="Overfitting: training vs. test error",
     )
     ax.draw_frame(x_ticks=5, y_ticks=4)
-    xs = [d for d in range(1, 11)]
-    # Training error: monotonically decreasing toward zero.
-    train = [0.85 * math.exp(-0.45 * (d - 1)) + rng.uniform(-0.01, 0.01)
-             for d in xs]
-    # Test error: U-shaped (high underfit on left, rises right).
-    test = [0.85 * math.exp(-0.6 * (d - 1)) + 0.04 * (d - 3) ** 2
-            + rng.uniform(-0.015, 0.015) for d in xs]
     ax.polyline(zip(xs, train), color=PALETTE["train"], width=2.4,
                 label="training error", label_pos=(7.2, train[6] + 0.05))
     ax.polyline(zip(xs, test), color=PALETTE["test"], width=2.4,
-                label="test error", label_pos=(7.0, test[6] + 0.06))
+                label="test error", label_pos=(5.6, test[8]))
     ax.scatter(zip(xs, train), color=PALETTE["train"])
     ax.scatter(zip(xs, test), color=PALETTE["test"])
     # Mark the sweet-spot complexity.
