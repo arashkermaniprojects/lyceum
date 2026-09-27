@@ -369,7 +369,8 @@ def plan(
     # consistent lectures.  When the chosen root is too thin to fill a
     # session (a leaf with very little body), we widen one level up to
     # the parent so the listener still gets a proper introduction.
-    chosen.sort(key=lambda n: (n.page_start, n.nid))   # stable order for tiebreak
+    # ``chosen`` is already in rank order (ties broken by page, then nid),
+    # so ``chosen[0]`` is the best match.
     primary = _pick_primary_root(chosen, book)
     visited_alts = [n.nid for n in chosen if n.nid != primary.nid]
     sub_plan = plan_outline(
