@@ -32,10 +32,7 @@ Required citation (BibTeX):
 The DOI above is the Zenodo *concept DOI*, which always resolves to
 the latest version of the preprint.  The version-pinned DOI for v1
 (2026-05-05) is 10.5281/zenodo.20043458; cite that one only when you
-need to refer to a specific archived version.  When the journal
-version of the manuscript is published, this NOTICE will be updated
-with the journal reference; the Zenodo DOI will remain valid as the
-archived preprint and the citation requirement will not change.
+need to refer to a specific archived version.
 
 Please preserve this NOTICE file in any redistribution.
 
@@ -58,9 +55,10 @@ contribution.  Work that uses the SeVim pipeline directly
 (``tools/build_sevim_diagrams``, ``viz/render``, the math-semantic
 graph builder under ``sevim/math_graph*.py``) should ALSO cite SeVim:
 
-    Kermani Kolankeh, A. (2026).
-    "SeVim: Deterministic Semantic-to-Visual Mapping for Educational
-     Diagrams."  Zenodo.  https://doi.org/10.5281/zenodo.20011107
+    Kermani Kolankeh, A. and Zgheib, R. (2026).
+    "SeVim: Deterministic Semantic-to-Visual Mapping for Real-Time
+     Diagram Generation via Hybrid Neuro-Symbolic Reasoning."
+    Zenodo preprint, doi: 10.5281/zenodo.20011107.
 
 See ``sevim/README.md`` and ``sevim/CITATION.cff`` for the standalone
 description.

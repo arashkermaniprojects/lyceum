@@ -25,11 +25,15 @@ keywords:
   - information visualization
 preferred-citation:
   type: article
-  title: "SeVim: Deterministic Semantic-to-Visual Mapping for Educational Diagrams"
+  title: "SeVim: Deterministic Semantic-to-Visual Mapping for Real-Time Diagram Generation via Hybrid Neuro-Symbolic Reasoning"
   authors:
     - family-names: "Kermani Kolankeh"
       given-names: "Arash"
-  journal: "IEEE Transactions on Pattern Analysis and Machine Intelligence"
-  status: "under review"
+    - family-names: "Zgheib"
+      given-names: "Rita"
   year: 2026
-  url: "https://github.com/arashkermaniprojects/sevim"
+  publisher:
+    name: "Zenodo"
+  doi: "10.5281/zenodo.20011107"
+  url: "https://doi.org/10.5281/zenodo.20011107"
+  status: preprint

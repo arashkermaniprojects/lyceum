@@ -2,10 +2,7 @@ cff-version: 1.2.0
 message: >
   If you use Lyceum, the math semantic graph design, the evaluation
   harness, or any of the material in this repository in your research,
-  please cite the Zenodo preprint below.  When the journal version
-  appears, the ``preferred-citation`` block will be updated with the
-  published reference; the Zenodo DOI will remain valid as the
-  archived preprint.
+  please cite the Zenodo preprint given in ``preferred-citation``.
 title: >
   Lyceum: a fully-local multimodal system for narrated visualisation
   of mathematical textbooks
@@ -21,7 +18,7 @@ authors:
     given-names: "Rita"
     affiliation: "Canadian University Dubai"
     orcid: "https://orcid.org/0000-0001-6301-8783"
-version: "1.0.0"
+version: "0.1.0"
 date-released: "2026-05-05"
 repository-code: "https://github.com/arashkermaniprojects/lyceum"
 # Concept DOI --- always resolves to the latest version of the
@@ -49,7 +46,8 @@ abstract: >
   cross-section connectors) timed against the audio clock.  A
   three-tier quality-assurance suite audits every ingested book and a
   self-healing loop repairs OCR-degraded formulas against the source
-  PDF.  No external API is reachable from any production process.
+  PDF.  All model inference (text LLM, vision-language model,
+  embedder, text-to-speech) runs locally by default.
 keywords:
   - intelligent tutoring
   - retrieval-augmented generation
@@ -74,11 +72,8 @@ preferred-citation:
       given-names: "Rita"
       orcid: "https://orcid.org/0000-0001-6301-8783"
   year: 2026
-  publisher: "Zenodo"
+  publisher:
+    name: "Zenodo"
   doi: "10.5281/zenodo.20043457"
   url: "https://doi.org/10.5281/zenodo.20043457"
-  status: "preprint"
-  # When the manuscript is accepted by a peer-reviewed journal,
-  # update ``status`` to ``advance-online`` (or ``published``) and
-  # add ``journal``, ``volume``, ``issue``, ``start``, ``end``.
-  # The Zenodo DOI above remains valid as the archived preprint.
+  status: preprint

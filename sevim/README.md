@@ -213,13 +213,16 @@ sevim input.txt
 If you use SeVim in your research, please cite:
 
 ```bibtex
-@article{kermanikolankeh2026sevim,
-  title     = {{SeVim}: Deterministic Semantic-to-Visual Mapping for Educational Diagrams},
-  author    = {Kermani Kolankeh, Arash},
-  journal   = {IEEE Transactions on Pattern Analysis and Machine Intelligence},
+@misc{kermanikolankeh2026sevim,
+  title     = {{SeVim}: Deterministic Semantic-to-Visual Mapping for
+               Real-Time Diagram Generation via Hybrid Neuro-Symbolic
+               Reasoning},
+  author    = {Kermani Kolankeh, Arash and Zgheib, Rita},
   year      = {2026},
-  note      = {Under review},
-  url       = {https://github.com/arashkermaniprojects/sevim}
+  publisher = {Zenodo},
+  doi       = {10.5281/zenodo.20011107},
+  url       = {https://doi.org/10.5281/zenodo.20011107},
+  note      = {Preprint}
 }
 ```
 
@@ -228,4 +231,3 @@ If you use SeVim in your research, please cite:
 ## License
 
 CC BY-NC 4.0 — free for research and non-commercial use with attribution.
-License will be updated to MIT upon paper acceptance.
