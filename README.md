@@ -24,16 +24,26 @@ cross-section connectors).  Every visual emission is timed against the
 audio clock by a single animation-frame loop, so the spoken track and
 the whiteboard cannot drift apart.
 
-No external API is reachable from any production process — the entire
-runtime stack (text LLM, vision-language inspector, sentence
-embedder, text-to-speech) is served on the user's own machine.
+All model inference in the runtime stack (text LLM, vision-language
+inspector, sentence embedder, text-to-speech, speech recognition) is
+served on the user's own machine; no book content is sent to an
+external model API by default.  Three exceptions are worth knowing:
 
-> **Status:** the accompanying paper is published as a preprint on
+- the browser UI loads KaTeX (CSS/JS) from the jsDelivr CDN;
+- the SeVim graph-improvement step (`sevim/s2b_improve.py`) calls the
+  Anthropic API, but only when explicitly enabled with
+  `SEVIM_IMPROVE=1` and an `ANTHROPIC_API_KEY`;
+- the optional M6 narration-quality judge in `bench/eval/` uses the
+  Anthropic API; M1 – M5 do not.
+
+> **Status:** the accompanying paper is available as a preprint on
 > Zenodo (DOI [10.5281/zenodo.20043457](https://doi.org/10.5281/zenodo.20043457),
-> 2026-05-05) and is currently under peer review for journal
-> publication.  This repository ships the implementation, evaluation
-> harness, and per-book sidecars used to produce every numerical
-> claim in the paper.
+> 2026-05-05).  This repository ships the implementation, the
+> evaluation harness and the raw JSON results behind the reported
+> measurements.  Per-book artefacts (`books/`) are not included
+> because the source textbooks are copyrighted: M1 reproduces from
+> this repository alone, while M2 – M5 require you to ingest your own
+> copy of the book first (see below).
 
 ---
 
@@ -62,10 +72,7 @@ harness, or any of the material in this repository in your research,
 The DOI above is the Zenodo *concept DOI* — it always resolves to
 the latest version of the preprint.  Use the version-pinned DOI
 `10.5281/zenodo.20043458` only when you need to refer to v1
-(2026-05-05) specifically.  When the manuscript is published in a
-peer-reviewed journal, this BibTeX block will be updated with the
-journal reference; the Zenodo DOI will remain valid as the archived
-preprint.
+(2026-05-05) specifically.
 
 The bundled SeVim diagram engine has its own citation under
 [`sevim/README.md`](sevim/README.md); please cite both when you use
@@ -80,7 +87,8 @@ record so GitHub's "Cite this repository" button works end-to-end.
 
 - **Fully local.** vLLM serves a quantised text LLM, an embedding
   model and a vision-language inspector; Kokoro is the text-to-speech
-  subprocess.  No request leaves the user's machine.
+  subprocess.  By default no model request leaves the user's machine
+  (see the exceptions listed above).
 - **Math semantic graph per book.** Four node types (variable,
   formula, passage, concept), eleven edge types (uses, binds, defines,
   contains, references, derived\_from, specializes, related\_to,
@@ -121,8 +129,10 @@ record so GitHub's "Cite this repository" button works end-to-end.
 ├── viz/              Visualisation: 12 curated SVG generators,
 │                     structural / VLM inspector, operation vocabulary,
 │                     chapter-map renderer, edge styles
-├── chalkboard/       Browser-side chalkboard module (audio-clock loop,
-│                     per-clause timeline, rAF sync engine)
+├── chalkboard/       Python whiteboard-state model (accumulating board,
+│                     placement / eviction policies); the browser-side
+│                     audio-clock rAF sync loop lives in
+│                     serve/static/index.html
 ├── sevim/            SeVim diagram engine — the math semantic graph
 │                     builder, deterministic SVG layout, and ESLII
 │                     formula-fidelity tooling.  Has its own README
@@ -139,17 +149,13 @@ record so GitHub's "Cite this repository" button works end-to-end.
 │                     LaTeX fragments, the verbatim Sonnet-judge rubric,
 │                     and a per-run cost ledger
 ├── service/          Service entry points (e.g. multi-book server)
-├── tests/            705 deterministic unit / system tests
+├── tests/            708 deterministic unit / system tests
 ├── discovery/        Design notes (math-graph plan, inspector design,
 │                     visual relation QA gallery)
 └── books/            Per-book artefacts (corpus JSON, math graph,
                       figures sidecar, chapter-map sidecars, …) ---
                       gitignored because the source PDFs are
                       copyrighted
-
-The manuscript source (LaTeX) lives in a **separate paper repository**
-and is not included in this code repository; numerical claims in the
-paper are reproduced from this code base via ``bench/eval/``.
 ```
 
 ---
@@ -159,7 +165,9 @@ paper are reproduced from this code base via ``bench/eval/``.
 ### Prerequisites
 
 - Python 3.10+
-- `pip install -e .` to install the runtime in development mode
+- `pip install -e ".[dev,book]" numpy` from the repository root (run
+  all commands from the repository root; `narrator/`, `serve/`,
+  `tools/` and `viz/` are used in place, not installed as packages)
 - A Linux-style box with reasonable RAM
 - A workstation GPU is recommended for the full local model fabric;
   the runtime degrades gracefully when individual model servers are
@@ -171,19 +179,28 @@ paper are reproduced from this code base via ``bench/eval/``.
 
 ```bash
 # Install
-pip install -e .
+pip install -e ".[dev,book]" numpy
 
-# Drop a copyrighted PDF into books/ — say, ESLII.pdf
+# Put your own copy of the PDF into books/ — say, ESLII.pdf
+mkdir -p books
 cp /path/to/ESLII.pdf books/
 
-# Run the full offline pipeline (parse, concept layer, math graph,
-# per-chapter sidecars, data-quality inspector, math-fidelity agent)
-python -m tools.ingest_agent books/ESLII.pdf
+# 1. Parse the PDF into the book corpus JSON (writes books/ESLII.json)
+python -m book.cli books/ESLII.pdf
 
-# Start the multi-book server
+# 2. Build the sidecars (concept layer, math graph, per-chapter maps,
+#    data-quality inspector, math-fidelity agent).  The ingest agent
+#    takes the corpus JSON, not the PDF, and uses the local text LLM
+#    at 127.0.0.1:8000 to decide which builder to run next.
+python -m tools.ingest_agent books/ESLII.json
+
+# 3. Start the multi-book server
 python -m serve.server books/ESLII.json
 # Browse to http://127.0.0.1:8001
 ```
+
+Alternatively, uploading a PDF through the running web UI triggers
+the same phases automatically (`serve/ingest_pipeline.py`).
 
 The server tolerates missing model servers — it falls back to
 retrieval-only Q&A when the text LLM endpoint is unreachable, and to
@@ -212,18 +229,26 @@ pip install anthropic
 ```
 
 Each driver writes one JSON record into `bench/eval/results/`, and
-`build_tables.py` rebuilds the paper-side `paper/tables/*.tex`
-fragments mechanically.  The paper's headline numbers (Table 16 in
-the manuscript) are produced by `build_summary` from those JSON
-records.
+`build_tables.py` rebuilds the LaTeX fragments in
+`bench/eval/tables/*.tex` mechanically; the combined
+`measurement_summary.tex` digest is produced by `build_summary` from
+the same JSON records.  M1 runs from the committed files alone;
+M2 – M5 read `books/ESLII.json` and `books/ESLII.math_graph.json`,
+which you must build from your own copy of the book (see above).
+`build_tables.py` itself only needs the committed JSON results.
 
 ### Run the test suite
 
 ```bash
+pip install -e ".[dev,book]" numpy   # pytest, PyMuPDF, NumPy
 pytest -q
 ```
 
-There are currently 705 deterministic tests covering the router, the
+`pyproject.toml` puts the repository root on the test path, so plain
+`pytest` works from the root.  There are currently 708 collected
+deterministic tests; tests that need a locally ingested book
+(`books/ESLII.json`) or a live model server skip when those are
+absent.  The suite covers the router, the
 math-graph builders, the cross-tangent dedup contract, the
 narration-after-question SSE harness, the per-clause primitive
 detectors, and a property-based determinism suite.
@@ -287,11 +312,9 @@ this order:
 
 This repository is licensed under the
 [Creative Commons Attribution–NonCommercial 4.0 International
-license (CC BY-NC 4.0)](LICENSE) while the accompanying paper is
-under review.  Upon paper acceptance the license will be updated to
-a permissive open-source licence; the citation requirement carried
-by the [`NOTICE`](NOTICE) file will remain in force across that
-relicensing.
+license (CC BY-NC 4.0)](LICENSE), copyright (c) 2026 Arash Kermani
+Kolankeh and Rita Zgheib.  The citation requirement carried by the
+[`NOTICE`](NOTICE) file is part of the licence terms.
 
 You are free to share and adapt the material for non-commercial
 purposes **with appropriate attribution**.  CC BY-NC 4.0 §3(a)
@@ -314,8 +337,6 @@ contribution; see `sevim/README.md` and the SeVim Zenodo preprint
 ([10.5281/zenodo.20011107](https://doi.org/10.5281/zenodo.20011107))
 for the standalone description.
 
-The implementation was prepared with the help of generative AI
-writing assistants (Anthropic Claude) for prose editing,
-copy-editing, and reconciling numerical claims against the working
-tree.  All scientific contributions, design decisions and reported
-results are the authors' own.
+Parts of the code and documentation were developed with the
+assistance of AI coding tools (Anthropic Claude); all content was
+reviewed by the authors.

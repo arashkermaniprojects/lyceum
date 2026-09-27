@@ -16,8 +16,8 @@ Selection algorithm (``find_visualization``):
      (sub-millisecond, doesn't depend on the embedding server).
   3. Otherwise embed the query and cosine-rank against the pre-computed
      topic embeddings.  Accept the top topic only if:
-        - cosine ≥ ``ACCEPT_THRESHOLD`` (0.55 by default), AND
-        - top - second ≥ ``MARGIN`` (0.04 by default).
+        - cosine ≥ ``ACCEPT_THRESHOLD`` (0.65 by default), AND
+        - top - second ≥ ``MARGIN`` (0.07 by default).
      This is what stops "synaptic weight" from grabbing
      "back-propagation" just because the section discusses both.
   4. If the embedding server is unreachable, fall through to a
